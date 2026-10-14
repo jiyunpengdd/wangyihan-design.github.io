@@ -1,6 +1,7 @@
 ---
 import { siteConfig } from '@/config/site';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import WarpText from '@/components/ui/WarpText.astro';
 
 interface Props {
   frontmatter: {
@@ -18,9 +19,7 @@ const updatedDate = new Date(`${updated}T00:00:00Z`);
 <BaseLayout title={title} description={description} noindex closing={false}>
   <header class="shell pt-16 sm:pt-24">
     <p class="rise eyebrow">法律条款</p>
-    <h1 class="rise mt-6 text-headline" style="--rise-step: 1">
-      {title}
-    </h1>
+    <WarpText class="rise mt-6 text-headline" style="--rise-step: 1" text={title} />
     <p class="rise mt-6 max-w-2xl text-lead text-body" style="--rise-step: 2">
       {description}
     </p>

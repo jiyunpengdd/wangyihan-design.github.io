@@ -4,6 +4,7 @@ import portrait from '@/assets/images/maria.webp';
 import Icon from '@/components/ui/Icon.astro';
 import { hero } from '@/config/home';
 import { siteConfig } from '@/config/site';
+import WarpText from '@/components/ui/WarpText.astro';
 ---
 
 <section class="shell pt-14 pb-20 sm:pt-20 sm:pb-28 lg:pt-24" aria-labelledby="hero-title">
@@ -22,9 +23,13 @@ import { siteConfig } from '@/config/site';
     </p>
   )}
 
-  <h1 id="hero-title" class="rise mt-8 max-w-[17ch] text-display" style="--rise-step: 1">
-    {hero.greeting} {hero.title}
-  </h1>
+  <WarpText
+    as="h1"
+    id="hero-title"
+    class="rise mt-8 text-display"
+    style="--rise-step: 1"
+    text={`${hero.greeting}\n${hero.title}`}
+  />
 
   <div class="mt-10 grid gap-12 lg:mt-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
     <div class="rise" style="--rise-step: 2">

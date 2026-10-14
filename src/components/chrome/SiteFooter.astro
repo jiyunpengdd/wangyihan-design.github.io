@@ -4,6 +4,7 @@ import Logomark from '@/components/ui/Logomark.astro';
 import { closing } from '@/config/home';
 import { legalLinks, navigation, siteConfig } from '@/config/site';
 import { socialIcon } from '@/lib/socials';
+import WarpText from '@/components/ui/WarpText.astro';
 
 interface Props {
   closing?: boolean;
@@ -20,9 +21,14 @@ const year = new Date().getFullYear();
       <div class="closing-grid" aria-hidden="true" />
       <div class="reveal relative">
         <p class="eyebrow text-night-muted">{closing.eyebrow}</p>
-        <h2 id="closing-title" class="mt-6 max-w-[18ch] text-headline">
-          {closing.title} <span class="serif text-accent">{closing.highlight}</span>
-        </h2>
+        <WarpText
+          as="h2"
+          id="closing-title"
+          class="mt-6 text-headline"
+          text={closing.title}
+          highlight={closing.highlight}
+          highlightClass="serif text-accent"
+        />
         <p class="mt-6 max-w-xl text-lead text-night-muted">{closing.text}</p>
         <div class="mt-10 flex flex-wrap items-center gap-3">
           <a class="btn btn-accent" href={`mailto:${email}`}>
@@ -42,7 +48,7 @@ const year = new Date().getFullYear();
   <div class="reveal shell grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
     <div>
       <a href="/" class="inline-flex items-center gap-2.5 text-[1.15rem] font-semibold tracking-[-0.03em]">
-      <Logomark />
+        <Logomark />
         <span>{siteConfig.name}</span>
         <span class="sr-only">，首页</span>
       </a>

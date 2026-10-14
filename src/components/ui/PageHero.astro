@@ -1,4 +1,6 @@
 ---
+import WarpText from '@/components/ui/WarpText.astro';
+
 interface Props {
   eyebrow?: string;
   title: string;
@@ -12,11 +14,7 @@ const { eyebrow, title, highlight, text } = Astro.props;
 
 <header class="shell pt-16 sm:pt-24">
   {eyebrow && <p class="rise eyebrow">{eyebrow}</p>}
-  <h1 class="rise mt-6 max-w-[20ch] text-headline" style="--rise-step: 1">
-    {title}
-    {highlight && ' '}
-    {highlight && <span class="serif">{highlight}</span>}
-  </h1>
+  <WarpText as="h1" class="rise mt-6 text-headline" style="--rise-step: 1" text={title} highlight={highlight} />
   {text && (
     <p class="rise mt-6 max-w-2xl text-lead text-body" style="--rise-step: 2">
       {text}

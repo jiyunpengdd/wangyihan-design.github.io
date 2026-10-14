@@ -2,20 +2,14 @@
 import Icon from '@/components/ui/Icon.astro';
 import { navigation } from '@/config/site';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import WarpText from '@/components/ui/WarpText.astro';
 ---
 
-<BaseLayout
-  title="页面未找到"
-  description="你访问的页面不存在。"
-  noindex
-  closing={false}
->
+<BaseLayout title="页面未找到" description="你访问的页面不存在。" noindex closing={false}>
   <section class="shell grid min-h-[70vh] place-items-center py-20 text-center">
     <div>
       <p class="rise font-serif text-[clamp(6rem,4rem+10vw,12rem)] leading-none text-muted italic">404</p>
-      <h1 class="rise mt-4 text-section" style="--rise-step: 1">
-        这个页面走了另一条路。
-      </h1>
+      <WarpText class="rise mt-4 text-section" style="--rise-step: 1" text="这个页面走了另一条路。" />
       <p class="rise mx-auto mt-5 max-w-md text-lead text-muted" style="--rise-step: 2">
         链接可能已过期，或页面已经移动。试试下面的入口吧。
       </p>

@@ -1,0 +1,640 @@
+---
+interface Props {
+  as?: 'h1' | 'h2' | 'h3';
+  id?: string;
+  class?: string;
+  style?: string;
+  text: string;
+  highlight?: string;
+  highlightClass?: string;
+  warpStrength?: number;
+  warpScale?: number;
+  speed?: number;
+  pointerInfluence?: number;
+  pointerStrength?: number;
+  refraction?: number;
+  ripple?: boolean;
+}
+
+const {
+  as: Tag = 'h1',
+  id,
+  class: className,
+  style,
+  text,
+  highlight,
+  highlightClass = 'serif',
+  warpStrength = 0.08,
+  warpScale = 1.7,
+  speed = 0.55,
+  pointerInfluence = 0.42,
+  pointerStrength = 0.38,
+  refraction = 0.018,
+  ripple = true,
+} = Astro.props;
+
+const options = {
+  warpStrength,
+  warpScale,
+  speed,
+  pointerInfluence,
+  pointerStrength,
+  refraction,
+  ripple,
+};
+---
+
+<Tag id={id} class:list={['warp-heading', className]} style={style} data-warp-heading={JSON.stringify(options)}>
+  <span class="warp-heading__fallback">
+    <span class="warp-heading__segment">{text}</span>
+    {highlight && (
+      <>
+        {' '}
+        <span class={`warp-heading__segment ${highlightClass}`}>{highlight}</span>
+      </>
+    )}
+  </span>
+</Tag>
+
+<style>
+  .warp-heading {
+    position: relative;
+  }
+
+  .warp-heading__fallback {
+    display: block;
+  }
+
+  .warp-heading :global(canvas) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  .warp-heading.is-ready :global(canvas) {
+    opacity: 1;
+  }
+
+  .warp-heading.is-ready .warp-heading__fallback {
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+
+<script>
+  import { Mesh, Program, Renderer, Texture, Triangle, type OGLRenderingContext } from 'ogl';
+
+  const vertex = `#version 300 es
+  in vec2 position;
+  in vec2 uv;
+  out vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position, 0.0, 1.0);
+  }
+  `;
+
+  const fragment = `#version 300 es
+  precision highp float;
+
+  uniform sampler2D uTextTexture;
+  uniform vec2 uResolution;
+  uniform vec2 uPointer;
+  uniform float uPointerActive;
+  uniform float uTime;
+  uniform float uWarpStrength;
+  uniform float uWarpScale;
+  uniform float uSpeed;
+  uniform float uPointerInfluence;
+  uniform float uPointerStrength;
+  uniform float uRefraction;
+  uniform float uRipple;
+  uniform float uMotion;
+
+  in vec2 vUv;
+  out vec4 fragColor;
+
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+
+  float fbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < 4; i++) {
+      value += amplitude * noise(p);
+      p *= 2.02;
+      amplitude *= 0.5;
+    }
+    return value;
+  }
+
+  vec4 sampleText(vec2 uv) {
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+      return vec4(0.0);
+    }
+    return texture(uTextTexture, uv);
+  }
+
+  void main() {
+    vec2 uv = vUv;
+    float aspect = uResolution.x / max(uResolution.y, 1.0);
+    float time = uTime * uSpeed;
+    float scale = max(uWarpScale, 0.001);
+
+    vec2 drift = vec2(time * 0.055, -time * 0.045);
+    float n1 = fbm(uv * scale * 3.1 + drift);
+    float n2 = fbm((uv + 19.17) * scale * 3.4 - drift.yx);
+    vec2 ambient = (vec2(n1, n2) - 0.5) * uWarpStrength * 0.045 * uMotion;
+
+    vec2 pointerDelta = uv - uPointer;
+    vec2 aspectDelta = vec2(pointerDelta.x * aspect, pointerDelta.y);
+    float dist = length(aspectDelta);
+    float radius = max(uPointerInfluence, 0.001);
+    float t = clamp(dist / radius, 0.0, 1.0);
+    float lens = smoothstep(radius, 0.0, dist) * uPointerActive;
+    float bulge = t * (1.0 - t) * (1.0 - t) * 6.75 * uPointerActive;
+    vec2 dir = dist > 0.0001 ? vec2(aspectDelta.x / aspect, aspectDelta.y) / dist : vec2(0.0);
+
+    float rippleWave = sin(dist * 28.0 - time * 4.2) * 0.5 + 0.5;
+    float rippleRing = (rippleWave - 0.5) * uRipple;
+    vec2 pointerWarp = -dir * bulge * uPointerStrength * 0.045;
+    pointerWarp += dir * rippleRing * bulge * uPointerStrength * 0.016;
+
+    vec2 displaced = uv + ambient + pointerWarp;
+    vec2 splitDir = ambient + pointerWarp;
+    float splitLen = length(splitDir);
+    splitDir = splitLen > 0.00001 ? splitDir / splitLen : vec2(0.7071, 0.7071);
+    vec2 split = splitDir * uRefraction * 0.16 * (0.35 + lens * 1.65);
+
+    vec4 base = sampleText(displaced);
+    float r = sampleText(displaced + split).r;
+    float g = base.g;
+    float b = sampleText(displaced - split).b;
+    float a = max(max(sampleText(displaced + split).a, base.a), sampleText(displaced - split).a);
+
+    vec3 color = vec3(r, g, b) + lens * base.a * 0.055;
+    fragColor = vec4(color, a);
+  }
+  `;
+
+  type HeadingOptions = {
+    warpStrength: number;
+    warpScale: number;
+    speed: number;
+    pointerInfluence: number;
+    pointerStrength: number;
+    refraction: number;
+    ripple: boolean;
+  };
+
+  type SegmentStyle = {
+    color: string;
+    fontFamily: string;
+    fontSize: number;
+    fontStyle: string;
+    fontWeight: string;
+    letterSpacing: number;
+  };
+
+  type Token = {
+    text: string;
+    style: SegmentStyle;
+    width: number;
+    isNewline?: boolean;
+  };
+
+  const parseOptions = (heading: HTMLElement): HeadingOptions => {
+    const fallback: HeadingOptions = {
+      warpStrength: 0.08,
+      warpScale: 1.7,
+      speed: 0.55,
+      pointerInfluence: 0.42,
+      pointerStrength: 0.38,
+      refraction: 0.018,
+      ripple: true,
+    };
+
+    try {
+      return { ...fallback, ...JSON.parse(heading.dataset.warpHeading || '{}') };
+    } catch {
+      return fallback;
+    }
+  };
+
+  const readStyle = (element: Element): SegmentStyle => {
+    const computed = window.getComputedStyle(element);
+    const primaryFamily =
+      computed.fontFamily
+        .split(',')[0]
+        ?.trim()
+        .replace(/^["']|["']$/g, '') || 'sans-serif';
+    const genericFamily =
+      /(^|[\s,])serif([\s,]|$)/i.test(computed.fontFamily) && !/sans-serif/i.test(computed.fontFamily)
+        ? 'serif'
+        : 'sans-serif';
+    return {
+      color: computed.color,
+      fontFamily: `"${primaryFamily}", ${genericFamily}`,
+      fontSize: Number.parseFloat(computed.fontSize) || 48,
+      fontStyle: computed.fontStyle,
+      fontWeight: computed.fontWeight,
+      letterSpacing: computed.letterSpacing === 'normal' ? 0 : Number.parseFloat(computed.letterSpacing) || 0,
+    };
+  };
+
+  const isWordCharacter = (char: string) => /[\p{L}\p{N}_'-]/u.test(char);
+
+  const tokenize = (text: string) => {
+    const characters = Array.from(text);
+    const tokens: { text: string; isNewline?: boolean }[] = [];
+    let index = 0;
+
+    while (index < characters.length) {
+      const char = characters[index];
+      if (char === '\n') {
+        tokens.push({ text: '\n', isNewline: true });
+        index += 1;
+        continue;
+      }
+
+      if (/\s/u.test(char)) {
+        tokens.push({ text: char });
+        index += 1;
+        continue;
+      }
+
+      let word = char;
+      index += 1;
+      while (
+        index < characters.length &&
+        characters[index] !== '\n' &&
+        !/\s/u.test(characters[index]) &&
+        isWordCharacter(char) &&
+        isWordCharacter(characters[index])
+      ) {
+        word += characters[index];
+        index += 1;
+      }
+      tokens.push({ text: word });
+    }
+
+    return tokens;
+  };
+
+  const styleContext = (context: CanvasRenderingContext2D, style: SegmentStyle) => {
+    context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
+    context.fillStyle = style.color;
+  };
+
+  const measureToken = (context: CanvasRenderingContext2D, token: Token) => {
+    styleContext(context, token.style);
+    const characters = Array.from(token.text);
+    const textWidth = characters.reduce((width, char) => width + context.measureText(char).width, 0);
+    return textWidth + Math.max(0, characters.length) * token.style.letterSpacing;
+  };
+
+  const layoutLines = (tokens: Token[], maxWidth: number) => {
+    const lines: Token[][] = [];
+    let line: Token[] = [];
+    let lineWidth = 0;
+
+    tokens.forEach((token) => {
+      if (token.isNewline) {
+        lines.push(line);
+        line = [];
+        lineWidth = 0;
+        return;
+      }
+
+      if (/\s/u.test(token.text) && line.length === 0) return;
+
+      if (lineWidth + token.width > maxWidth && line.length > 0) {
+        while (line.length > 0 && /\s/u.test(line.at(-1)?.text || '')) {
+          line.pop();
+        }
+        lines.push(line);
+        line = /\s/u.test(token.text) ? [] : [token];
+        lineWidth = line.reduce((width, item) => width + item.width, 0);
+        return;
+      }
+
+      line.push(token);
+      lineWidth += token.width;
+    });
+
+    lines.push(line);
+    return lines.filter((line) => line.length > 0);
+  };
+
+  const drawLine = (context: CanvasRenderingContext2D, tokens: Token[], centerX: number, y: number) => {
+    const width = tokens.reduce((width, token) => width + token.width, 0);
+    let cursor = centerX - width / 2;
+
+    tokens.forEach((token) => {
+      styleContext(context, token.style);
+      const characters = Array.from(token.text);
+      characters.forEach((char) => {
+        context.fillText(char, cursor, y);
+        cursor += context.measureText(char).width + token.style.letterSpacing;
+      });
+    });
+  };
+
+  const buildTextCanvas = (heading: HTMLElement, width: number, height: number, dpr: number) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.floor(width * dpr));
+    canvas.height = Math.max(1, Math.floor(height * dpr));
+    const context = canvas.getContext('2d');
+    if (!context) return canvas;
+
+    const segments = Array.from(heading.querySelectorAll<HTMLElement>('.warp-heading__segment'));
+    if (segments.length === 0) return canvas;
+
+    const tokens: Token[] = [];
+    segments.forEach((segment) => {
+      const style = readStyle(segment);
+      tokenize(segment.textContent || '').forEach((token) => {
+        const nextToken: Token = { ...token, style: { ...style }, width: 0 };
+        nextToken.width = measureToken(context, nextToken);
+        tokens.push(nextToken);
+      });
+    });
+
+    const cssWidth = width;
+    const cssHeight = height;
+    const maxWidth = cssWidth * 0.88;
+    const maxHeight = cssHeight * 0.82;
+    const baseFontSize = tokens[0]?.style.fontSize || 48;
+    const lineHeight = Number.parseFloat(window.getComputedStyle(heading).lineHeight) || baseFontSize * 0.95;
+
+    let lines = layoutLines(tokens, maxWidth);
+    const widest = Math.max(...lines.map((line) => line.reduce((width, token) => width + token.width, 0)), 1);
+    const fit = Math.min(1, maxWidth / widest, maxHeight / Math.max(lineHeight * lines.length, 1));
+
+    if (fit < 1) {
+      tokens.forEach((token) => {
+        token.style.fontSize *= fit;
+        token.style.letterSpacing *= fit;
+        token.width = measureToken(context, token);
+      });
+      lines = layoutLines(tokens, maxWidth);
+    }
+
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.clearRect(0, 0, cssWidth, cssHeight);
+    context.textAlign = 'left';
+    context.textBaseline = 'middle';
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+
+    const blockHeight = lineHeight * fit * lines.length;
+    const startY = cssHeight / 2 - blockHeight / 2 + (lineHeight * fit) / 2;
+    lines.forEach((line, index) => drawLine(context, line, cssWidth / 2, startY + index * lineHeight * fit));
+    return canvas;
+  };
+
+  const initializeHeading = (heading: HTMLElement) => {
+    const options = parseOptions(heading);
+    let renderer: Renderer | undefined;
+    let gl: OGLRenderingContext | undefined;
+    let program: Program | undefined;
+    let texture: Texture | undefined;
+    let geometry: Triangle | undefined;
+    let mesh: Mesh | undefined;
+    let resizeObserver: ResizeObserver | undefined;
+    let intersectionObserver: IntersectionObserver | undefined;
+    let raf = 0;
+    let disposed = false;
+    let contextLost = false;
+    let visible = true;
+    let pageVisible = !document.hidden;
+    let rasterVersion = 0;
+    const reduceMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let reduceMotion = reduceMotionQuery?.matches ?? false;
+    const pointer = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5, active: 0, activeTarget: 0 };
+    const startTime = performance.now();
+
+    try {
+      renderer = new Renderer({
+        webgl: 2,
+        alpha: true,
+        premultipliedAlpha: false,
+        antialias: true,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+      });
+      gl = renderer.gl;
+    } catch (error) {
+      console.warn('WarpText: WebGL could not be initialized.', error);
+      return () => {};
+    }
+
+    if (!gl || !renderer) return () => {};
+    gl.clearColor(0, 0, 0, 0);
+    const canvas = gl.canvas;
+    canvas.setAttribute('aria-hidden', 'true');
+    heading.appendChild(canvas);
+
+    texture = new Texture(gl, {
+      generateMipmaps: false,
+      minFilter: gl.LINEAR,
+      magFilter: gl.LINEAR,
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+    });
+    geometry = new Triangle(gl);
+    program = new Program(gl, {
+      vertex,
+      fragment,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        uTextTexture: { value: texture },
+        uResolution: { value: new Float32Array([1, 1]) },
+        uPointer: { value: new Float32Array([0.5, 0.5]) },
+        uPointerActive: { value: 0 },
+        uTime: { value: 0 },
+        uWarpStrength: { value: options.warpStrength },
+        uWarpScale: { value: options.warpScale },
+        uSpeed: { value: options.speed },
+        uPointerInfluence: { value: options.pointerInfluence },
+        uPointerStrength: { value: options.pointerStrength },
+        uRefraction: { value: options.refraction },
+        uRipple: { value: options.ripple ? 1 : 0 },
+        uMotion: { value: reduceMotion ? 0 : 1 },
+      },
+    });
+    mesh = new Mesh(gl, { geometry, program });
+
+    const renderOnce = () => {
+      if (!disposed && !contextLost && renderer && mesh) renderer.render({ scene: mesh });
+    };
+
+    const rasterize = async () => {
+      const version = ++rasterVersion;
+      try {
+        await document.fonts?.ready;
+      } catch {
+        // Font loading is progressive; the fallback text remains visible.
+      }
+
+      if (disposed || contextLost || version !== rasterVersion) return;
+      const rect = heading.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || !gl || !texture) return;
+
+      texture.image = buildTextCanvas(heading, rect.width, rect.height, Math.min(window.devicePixelRatio || 1, 2));
+      texture.needsUpdate = true;
+      renderOnce();
+      heading.classList.add('is-ready');
+      heading.dataset.warpState = 'ready';
+    };
+
+    const resize = () => {
+      if (disposed || contextLost || !gl || !renderer || !program) return;
+      const rect = heading.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+
+      renderer.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      renderer.setSize(rect.width, rect.height);
+      program.uniforms.uResolution.value[0] = gl.drawingBufferWidth;
+      program.uniforms.uResolution.value[1] = gl.drawingBufferHeight;
+      void rasterize();
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return;
+      const rect = canvas.getBoundingClientRect();
+      pointer.targetX = (event.clientX - rect.left) / rect.width;
+      pointer.targetY = 1 - (event.clientY - rect.top) / rect.height;
+      pointer.activeTarget = 1;
+    };
+
+    const onPointerLeave = () => {
+      pointer.activeTarget = 0;
+    };
+
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      contextLost = true;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      heading.classList.remove('is-ready');
+      heading.dataset.warpState = 'fallback';
+    };
+
+    const onVisibility = () => {
+      pageVisible = !document.hidden;
+      if (pageVisible && visible && !raf) raf = requestAnimationFrame(loop);
+      if (!pageVisible && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+
+    const onReducedMotion = (event: MediaQueryListEvent) => {
+      reduceMotion = event.matches;
+      if (program) program.uniforms.uMotion.value = reduceMotion ? 0 : 1;
+      renderOnce();
+    };
+
+    const loop = (now: number) => {
+      if (disposed || contextLost || !program) return;
+      const elapsed = (now - startTime) * 0.001;
+      const targetX = pointer.activeTarget > 0 ? pointer.targetX : 0.5 + Math.sin(elapsed * 0.33) * 0.12;
+      const targetY = pointer.activeTarget > 0 ? pointer.targetY : 0.5 + Math.cos(elapsed * 0.27) * 0.1;
+      const damping = pointer.activeTarget > 0 ? 0.12 : 0.035;
+
+      pointer.x += (targetX - pointer.x) * damping;
+      pointer.y += (targetY - pointer.y) * damping;
+      pointer.active += ((pointer.activeTarget > 0 ? 1 : 0.18) - pointer.active) * 0.06;
+      program.uniforms.uPointer.value[0] = pointer.x;
+      program.uniforms.uPointer.value[1] = pointer.y;
+      program.uniforms.uPointerActive.value = reduceMotion ? pointer.active * 0.35 : pointer.active;
+      program.uniforms.uTime.value = reduceMotion ? 0 : elapsed;
+
+      renderOnce();
+      raf = requestAnimationFrame(loop);
+    };
+
+    resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(heading);
+    intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible && pageVisible && !raf) raf = requestAnimationFrame(loop);
+        if (!visible && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      },
+      { threshold: 0 },
+    );
+    intersectionObserver.observe(heading);
+
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerleave', onPointerLeave);
+    canvas.addEventListener('webglcontextlost', onContextLost);
+    document.addEventListener('visibilitychange', onVisibility);
+    reduceMotionQuery?.addEventListener('change', onReducedMotion);
+
+    heading.dataset.warpState = 'initializing';
+    resize();
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      disposed = true;
+      if (raf) cancelAnimationFrame(raf);
+      resizeObserver?.disconnect();
+      intersectionObserver?.disconnect();
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
+      canvas.removeEventListener('webglcontextlost', onContextLost);
+      document.removeEventListener('visibilitychange', onVisibility);
+      reduceMotionQuery?.removeEventListener('change', onReducedMotion);
+
+      if (!contextLost) {
+        try {
+          if (texture?.texture) gl.deleteTexture(texture.texture);
+          geometry?.remove?.();
+          program?.remove?.();
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+        } catch {
+          // WebGL teardown is best-effort during page unload and HMR.
+        }
+      }
+
+      if (canvas.parentNode === heading) heading.removeChild(canvas);
+    };
+  };
+
+  const cleanups = new WeakMap<HTMLElement, () => void>();
+  const initializeAll = () => {
+    document.querySelectorAll<HTMLElement>('[data-warp-heading]').forEach((heading) => {
+      if (cleanups.has(heading) || heading.dataset.warpState === 'ready') return;
+      cleanups.set(heading, initializeHeading(heading));
+    });
+  };
+
+  initializeAll();
+</script>

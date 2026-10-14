@@ -6,6 +6,7 @@ import { about } from '@/config/about';
 import { siteConfig } from '@/config/site';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { profileSchema } from '@/lib/schema';
+import WarpText from '@/components/ui/WarpText.astro';
 ---
 
 <BaseLayout
@@ -17,9 +18,7 @@ import { profileSchema } from '@/lib/schema';
   <header class="shell grid gap-12 pt-16 sm:pt-24 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-16">
     <div>
       <p class="rise eyebrow">{about.eyebrow}</p>
-      <h1 class="rise mt-6 max-w-[18ch] text-headline" style="--rise-step: 1">
-        {about.title} <span class="serif">{about.highlight}</span>
-      </h1>
+      <WarpText class="rise mt-6 text-headline" style="--rise-step: 1" text={about.title} highlight={about.highlight} />
       <p class="rise mt-6 max-w-2xl text-lead text-body" style="--rise-step: 2">
         {about.text}
       </p>

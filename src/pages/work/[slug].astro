@@ -4,6 +4,7 @@ import { render } from 'astro:content';
 import { mdxComponents } from '@/components/mdx';
 import Icon from '@/components/ui/Icon.astro';
 import NextProject from '@/components/work/NextProject.astro';
+import WarpText from '@/components/ui/WarpText.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { caseStudySchema } from '@/lib/schema';
 import { getProjects, type Project } from '@/lib/work';
@@ -60,9 +61,7 @@ const meta = [
           </li>
         </ol>
       </nav>
-      <h1 class="rise mt-8 max-w-[22ch] text-headline" style="--rise-step: 1">
-        {title}
-      </h1>
+      <WarpText class="rise mt-8 text-headline" style="--rise-step: 1" text={title} />
       <p class="rise mt-6 max-w-2xl text-lead text-body" style="--rise-step: 2">
         {summary}
       </p>
@@ -85,7 +84,7 @@ const meta = [
       </div>
 
       {services.length > 0 && (
-          <ul class="mt-6 flex flex-wrap gap-1.5" aria-label="服务">
+        <ul class="mt-6 flex flex-wrap gap-1.5" aria-label="服务">
           {services.map((service) => (
             <li class="chip">{service}</li>
           ))}
