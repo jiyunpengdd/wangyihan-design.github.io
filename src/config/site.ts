@@ -8,7 +8,7 @@ export const siteConfig = {
   title: 'Han - UI&UX 设计师作品集',
   description:
     'Han 是一位常驻上海的 UI&UX 设计师，擅长将繁杂的流程与模糊的需求转化为清晰、可信赖的数字产品。这里收录了精选作品、案例研究与简历。',
-  siteUrl: 'https://jiyunpengd.github.io',
+  siteUrl: 'https://wangyihan-design.github.io',
   language: 'zh-CN',
   locale: 'zh_CN',
   dateLocale: 'zh-CN',
