@@ -9,8 +9,8 @@ import { profileSchema } from '@/lib/schema';
 ---
 
 <BaseLayout
-  title="About"
-  description={`About ${siteConfig.author.name}, a ${siteConfig.author.role.toLowerCase()} in ${siteConfig.author.location} working on dashboards, workflow tools, and AI-assisted products.`}
+  title="关于"
+  description={`关于 ${siteConfig.author.name}，一位常驻${siteConfig.author.location}的${siteConfig.author.role}，专注于控制台、工作流工具和 AI 辅助产品。`}
   type="profile"
   structuredData={profileSchema('/about/')}
 >
@@ -25,11 +25,11 @@ import { profileSchema } from '@/lib/schema';
       </p>
       <div class="rise mt-8 flex flex-wrap gap-3" style="--rise-step: 3">
         <a class="btn btn-primary" href="/resume/">
-          View resume
+          查看简历
           <Icon name="arrow-right" class="icon-nudge size-4" />
         </a>
         <a class="btn btn-ghost" href={`mailto:${siteConfig.author.email}`}>
-          Email me
+          给我发邮件
         </a>
       </div>
     </div>

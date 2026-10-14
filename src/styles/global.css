@@ -109,8 +109,8 @@
   --ink: #121211;
   --body: #3b3b38;
   --muted: #6a6964;
-  --accent: #d4f84a;
-  --accent-strong: #c3ec2c;
+  --accent: #ff2d95;
+  --accent-strong: #ff1f8f;
   --on-accent: #121211;
   --inverse: #121211;
   --on-inverse: #fafaf7;
@@ -148,7 +148,7 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;
     }
@@ -516,17 +516,69 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
+@keyframes rise-exit {
+  to {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
+@keyframes reveal-exit {
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+
+  @media (prefers-reduced-motion: no-preference) {
   .rise {
     animation: rise 900ms var(--ease-out-expo) both;
     animation-delay: calc(var(--rise-step, 0) * 80ms);
   }
 
+  @supports not (animation-timeline: view()) {
+    .js .rise,
+    .js .reveal {
+      animation: none;
+      opacity: 0;
+      transition:
+        opacity 700ms var(--ease-out-expo),
+        transform 700ms var(--ease-out-expo);
+      will-change: opacity, transform;
+    }
+
+    .js .rise {
+      transform: translateY(18px);
+      transition-delay: calc(var(--rise-step, 0) * 80ms);
+    }
+
+    .js .reveal {
+      transform: translateY(32px);
+    }
+
+    .js .rise.in-view,
+    .js .reveal.in-view {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @supports (animation-timeline: view()) {
+    .rise {
+      animation:
+        rise 900ms var(--ease-out-expo) both,
+        rise-exit linear both;
+      animation-delay: calc(var(--rise-step, 0) * 80ms), 0ms;
+      animation-timeline: auto, view();
+      animation-range: normal, exit 0% exit 40%;
+    }
+
     .reveal {
-      animation: reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 40%;
+      animation:
+        reveal linear both,
+        reveal-exit linear both;
+      animation-timeline: view(), view();
+      animation-range: entry 0% entry 40%, exit 0% exit 45%;
     }
   }
 }

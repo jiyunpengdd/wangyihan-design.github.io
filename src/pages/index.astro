@@ -20,7 +20,7 @@ const selected = projects.toSorted((a, b) => Number(b.data.featured) - Number(a.
     <SectionHead id="work-title" eyebrow={work.eyebrow} title={work.title} text={work.text}>
       {projects.length > selected.length && (
         <a class="btn btn-ghost" href="/work/">
-          All work
+          全部作品
           <Icon name="arrow-right" class="icon-nudge size-4" />
         </a>
       )}

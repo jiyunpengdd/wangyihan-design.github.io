@@ -17,7 +17,7 @@ const updatedDate = new Date(`${updated}T00:00:00Z`);
 
 <BaseLayout title={title} description={description} noindex closing={false}>
   <header class="shell pt-16 sm:pt-24">
-    <p class="rise eyebrow">Legal</p>
+    <p class="rise eyebrow">法律条款</p>
     <h1 class="rise mt-6 text-headline" style="--rise-step: 1">
       {title}
     </h1>
@@ -25,14 +25,14 @@ const updatedDate = new Date(`${updated}T00:00:00Z`);
       {description}
     </p>
     <p class="rise mt-4 text-sm text-muted" style="--rise-step: 2">
-      Last updated{' '}
+      最后更新于{' '}
       <time datetime={updated}>
         {updatedDate.toLocaleDateString(siteConfig.dateLocale, { dateStyle: 'long', timeZone: 'UTC' })}
       </time>
     </p>
   </header>
   <div class="shell mt-14 sm:mt-20">
-    <div class="prose border-t border-line pt-10">
+    <div class="reveal prose border-t border-line pt-10">
       <slot />
     </div>
   </div>

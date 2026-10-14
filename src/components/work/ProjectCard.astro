@@ -42,7 +42,7 @@ const { title, client, year, services, cover, coverAlt, tint } = project.data;
     </a>
   </Heading>
   {services.length > 0 && (
-    <ul class="mt-4 flex flex-wrap gap-1.5" aria-label="Services">
+    <ul class="mt-4 flex flex-wrap gap-1.5" aria-label="服务">
       {services.slice(0, 3).map((service) => (
         <li class="chip">{service}</li>
       ))}

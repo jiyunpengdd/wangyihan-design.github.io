@@ -12,10 +12,12 @@ const { client, title, cover, tint } = project.data;
 ---
 
 <aside class="shell mt-24 sm:mt-32" aria-labelledby="next-project">
-  <div class="next-card relative grid overflow-hidden rounded-card border border-line bg-surface md:grid-cols-2">
+  <div
+    class="reveal next-card relative grid overflow-hidden rounded-card border border-line bg-surface md:grid-cols-2"
+  >
     <div class="flex flex-col justify-between gap-10 p-7 sm:p-10">
       <p id="next-project" class="eyebrow">
-        Next case study
+        下一个案例
       </p>
       <div>
         <p class="font-medium text-muted">{client}</p>
@@ -25,7 +27,7 @@ const { client, title, cover, tint } = project.data;
           </a>
         </p>
         <span class="btn btn-primary btn-sm mt-8" aria-hidden="true">
-          Read case study
+          阅读案例
           <Icon name="arrow-right" class="icon-nudge size-4" />
         </span>
       </div>

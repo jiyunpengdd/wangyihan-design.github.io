@@ -9,8 +9,8 @@ import { profileSchema } from '@/lib/schema';
 ---
 
 <BaseLayout
-  title="Resume"
-  description={`Resume of ${siteConfig.author.name}: experience, capabilities, education, and tools across ten years of product design.`}
+  title="简历"
+  description={`${siteConfig.author.name} 的简历：十年 UI&UX 设计生涯的经验、能力、教育与工具。`}
   type="profile"
   structuredData={profileSchema('/resume/')}
 >
@@ -19,7 +19,7 @@ import { profileSchema } from '@/lib/schema';
       {siteConfig.resumePdf && (
         <a class="btn btn-primary" href={siteConfig.resumePdf} download>
           <Icon name="download" class="size-4" />
-          Download PDF
+          下载 PDF
         </a>
       )}
       <a
@@ -35,7 +35,7 @@ import { profileSchema } from '@/lib/schema';
   <div class="shell mt-20 sm:mt-28">
     <section class="resume-row reveal" aria-labelledby="snapshot-title">
       <h2 id="snapshot-title" class="eyebrow self-start">
-        Snapshot
+        概览
       </h2>
       <dl class="grid gap-x-10 gap-y-6 sm:grid-cols-2">
         {resume.snapshot.map((item) => (
@@ -49,7 +49,7 @@ import { profileSchema } from '@/lib/schema';
 
     <section class="resume-row reveal" aria-labelledby="experience-title">
       <h2 id="experience-title" class="eyebrow self-start">
-        Experience
+        工作经历
       </h2>
       <ol class="grid gap-10">
         {resume.experience.map((job) => (
@@ -67,7 +67,7 @@ import { profileSchema } from '@/lib/schema';
 
     <section class="resume-row reveal" aria-labelledby="capabilities-title">
       <h2 id="capabilities-title" class="eyebrow self-start">
-        Capabilities
+        专业能力
       </h2>
       <ul class="grid gap-8 sm:grid-cols-3">
         {resume.capabilities.map((item) => (
@@ -81,7 +81,7 @@ import { profileSchema } from '@/lib/schema';
 
     <section class="resume-row reveal" aria-labelledby="education-title">
       <h2 id="education-title" class="eyebrow self-start">
-        Education
+        教育背景
       </h2>
       <ul class="grid gap-6">
         {resume.education.map((item) => (
@@ -98,7 +98,7 @@ import { profileSchema } from '@/lib/schema';
 
     <section class="resume-row reveal" aria-labelledby="tools-title">
       <h2 id="tools-title" class="eyebrow self-start">
-        Tools
+        工具
       </h2>
       <ul class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {resume.tools.map((tool) => (

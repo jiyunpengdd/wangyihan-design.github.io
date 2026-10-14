@@ -5,8 +5,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout
-  title="Page not found"
-  description="The page you were looking for could not be found."
+  title="页面未找到"
+  description="你访问的页面不存在。"
   noindex
   closing={false}
 >
@@ -14,15 +14,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     <div>
       <p class="rise font-serif text-[clamp(6rem,4rem+10vw,12rem)] leading-none text-muted italic">404</p>
       <h1 class="rise mt-4 text-section" style="--rise-step: 1">
-        This page took a different path.
+        这个页面走了另一条路。
       </h1>
       <p class="rise mx-auto mt-5 max-w-md text-lead text-muted" style="--rise-step: 2">
-        The link may be outdated, or the page may have moved. Try one of these instead.
+        链接可能已过期，或页面已经移动。试试下面的入口吧。
       </p>
       <div class="rise mt-10 flex flex-wrap justify-center gap-3" style="--rise-step: 3">
         <a class="btn btn-primary" href="/">
           <Icon name="arrow-left" class="size-4" />
-          Back home
+          返回首页
         </a>
         {navigation.map((link) => (
           <a class="btn btn-ghost" href={link.href}>

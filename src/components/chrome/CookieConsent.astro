@@ -4,13 +4,13 @@ import Icon from '@/components/ui/Icon.astro';
 const categories = [
   {
     name: 'analytics',
-    title: 'Analytics',
-    text: 'Lets optional analytics tools load so the site owner can see which pages are visited.',
+    title: '统计分析',
+    text: '允许可选的分析工具加载，让网站所有者了解哪些页面被访问。',
   },
   {
     name: 'marketing',
-    title: 'Marketing',
-    text: 'Lets optional advertising or conversion scripts load.',
+    title: '营销',
+    text: '允许可选的广告或转化跟踪脚本加载。',
   },
 ];
 ---
@@ -23,23 +23,23 @@ const categories = [
 >
   <h2 id="cookie-banner-title" class="flex items-center gap-2 font-semibold">
     <Icon name="cookie" class="size-4.5" />
-    Cookies, briefly
+    关于 Cookie
   </h2>
   <p class="mt-2 text-[0.95rem] text-body">
-    This site remembers your theme and this choice. Analytics and marketing stay off unless you allow them.{' '}
+    本网站会记住你的主题和这次选择。未经允许，统计与营销工具不会加载。{' '}
     <a class="link" href="/cookies/">
-      Cookie policy
+      Cookie 政策
     </a>
   </p>
   <div class="mt-4 flex flex-wrap gap-2">
     <button type="button" class="btn btn-primary btn-sm" data-consent="accept">
-      Accept all
+      全部接受
     </button>
     <button type="button" class="btn btn-ghost btn-sm" data-consent="reject">
-      Reject
+      拒绝
     </button>
     <button type="button" class="btn btn-sm px-2 underline-offset-4 hover:underline" data-cookie-preferences>
-      Preferences
+      偏好设置
     </button>
   </div>
 </section>
@@ -53,15 +53,15 @@ const categories = [
     <div class="flex items-start justify-between gap-4">
       <div>
         <h2 id="cookie-dialog-title" class="text-title">
-          Cookie preferences
+          Cookie 偏好设置
         </h2>
-        <p class="mt-1.5 text-[0.95rem] text-muted">Choices are saved in this browser only.</p>
+        <p class="mt-1.5 text-[0.95rem] text-muted">选择仅保存在当前浏览器中。</p>
       </div>
       <button
         type="submit"
         value="cancel"
         class="-mt-1 -mr-2 grid size-10 place-items-center rounded-full hover:bg-sunken"
-        aria-label="Close"
+        aria-label="关闭"
       >
         <Icon name="x" class="size-5" />
       </button>
@@ -70,10 +70,10 @@ const categories = [
     <ul class="mt-6 grid gap-3">
       <li class="rounded-panel border border-line p-4">
         <div class="flex items-center justify-between gap-4">
-          <h3 class="font-semibold">Essential</h3>
-          <span class="chip">Always on</span>
+          <h3 class="font-semibold">必要</h3>
+          <span class="chip">始终开启</span>
         </div>
-        <p class="mt-1.5 text-[0.95rem] text-muted">Remembers your color theme and these preferences.</p>
+        <p class="mt-1.5 text-[0.95rem] text-muted">记住你的配色主题和这些偏好设置。</p>
       </li>
       {categories.map((category) => (
         <li class="rounded-panel border border-line p-4">
@@ -99,13 +99,13 @@ const categories = [
 
     <div class="mt-6 flex flex-wrap justify-end gap-2">
       <button type="submit" value="reject" class="btn btn-ghost btn-sm">
-        Reject all
+        全部拒绝
       </button>
       <button type="submit" value="save" class="btn btn-ghost btn-sm">
-        Save choices
+        保存选择
       </button>
       <button type="submit" value="accept" class="btn btn-primary btn-sm">
-        Accept all
+        全部接受
       </button>
     </div>
   </form>

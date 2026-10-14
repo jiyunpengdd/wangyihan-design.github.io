@@ -23,7 +23,7 @@ import { siteConfig } from '@/config/site';
   )}
 
   <h1 id="hero-title" class="rise mt-8 max-w-[17ch] text-display" style="--rise-step: 1">
-    {hero.greeting} {hero.title} <span class="serif">{hero.highlight}</span>
+    {hero.greeting} {hero.title}
   </h1>
 
   <div class="mt-10 grid gap-12 lg:mt-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
@@ -60,7 +60,7 @@ import { siteConfig } from '@/config/site';
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 999px;
-    background: #22a55b;
+    background: var(--accent);
   }
 
   @media (prefers-reduced-motion: no-preference) {

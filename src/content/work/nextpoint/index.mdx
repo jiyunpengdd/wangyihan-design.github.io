@@ -1,14 +1,14 @@
 ---
-title: Making legal transcripts easier to scan, summarize, and act on with AI
+title: 用 AI 让法律笔录更易浏览、摘要与执行
 client: Nextpoint
-summary: Nextpoint needed a calmer way to surface transcript activity, AI summaries, and open matters for legal teams already working under time pressure.
+summary: Nextpoint 需要一种更从容的方式，为本就分秒必争的法律团队呈现笔录动态、AI 摘要与进行中的案件。
 year: 2026
-role: Lead product designer
-services: [UX audit, Dashboard redesign, AI interaction design, Design system]
-duration: 14 weeks
-team: 1 PM, 4 engineers, 1 ML engineer
+role: 首席 UI/UX 设计师
+services: [UX 审计, 控制台改版, AI 交互设计, 设计系统]
+duration: 14 周
+team: 1 名产品经理，4 名工程师，1 名机器学习工程师
 cover: ./cover.webp
-coverAlt: Nextpoint dashboard with transcript counts, an AI summary of a deposition with a flagged contradiction, recent transcripts, and a weekly review chart
+coverAlt: Nextpoint 控制台，包含笔录数量统计、一份标记出矛盾的证词 AI 摘要、最近的笔录列表和每周回顾图表
 tint: '#dff59a'
 order: 1
 featured: true
@@ -16,46 +16,46 @@ featured: true
 
 import transcriptViewer from './transcript-viewer.webp';
 
-The original dashboard surfaced the right information, but never with enough priority. Litigators could see metrics, summaries, and recent transcripts, yet still had to stop and work out what mattered first.
+原来的控制台虽然呈现了正确的信息，却始终缺乏足够的优先级。诉讼律师可以看到指标、摘要和最近的笔录，但仍需停下来分辨哪些才是最重要的。
 
-## The problem
+## 问题
 
-Nextpoint's users review hours of deposition testimony against tight filing deadlines. Interviews with eleven associates and paralegals pointed to the same moment of friction: opening the product and not knowing where to start.
+Nextpoint 的用户需要在紧迫的提交期限内核对数小时的证词笔录。对十一位律师和律师助理的访谈指向了同一个摩擦点：打开产品，却不知道从哪里开始。
 
-- Metrics, summaries, and activity were given equal visual weight.
-- AI summaries were a passive widget, disconnected from the transcript they described.
-- Contradictions, the most valuable thing the model found, were buried in a list.
+- 指标、摘要和动态被赋予了同等视觉权重。
+- AI 摘要只是一个被动挂件，与它所描述的笔录彼此割裂。
+- 矛盾点是模型发现的最有价值的信息，却被埋在列表深处。
 
-## What I did
+## 我做了什么
 
-I started by reviewing the dashboard against the jobs people actually came to do: check what changed, review what the model flagged, and jump into the right moment of the right transcript.
+我先对照用户真正要做的事情审视这个控制台：查看哪些内容发生了变化、检视模型标记了什么，然后跳转到正确笔录的正确时刻。
 
-The redesign is mostly about order. High-level counts come first, followed by the most recent AI summary, then recent transcripts, and finally the longer-term review activity. Nothing new was added to the page. It just reads in the sequence people work.
+这次改版的核心是顺序。概览数字排在最前，其次是最近的 AI 摘要，然后是最近的笔录，最后是较长周期的回顾动态。页面没有新增任何东西，只是按照人们实际工作的顺序来阅读。
 
 <Figure
   src={transcriptViewer}
-  alt="Transcript viewer with a highlighted passage at 02:15:32, an audio waveform, and an AI summary panel listing key moments and a contradiction with Exhibit 9"
-  caption="The transcript viewer pairs every key moment with a timestamp, so a summary is always one click from the testimony behind it."
+  alt="笔录查看器，02:15:32 处的高亮段落、音频波形图，以及列出关键时刻和与 9 号证据矛盾之处的 AI 摘要面板"
+  caption="笔录查看器为每个关键时刻配上时间戳，因此每条摘要离它背后的证词永远只有一次点击。"
 />
 
-## Key decisions
+## 关键决策
 
-**Summaries cite their sources.** Every point in an AI summary carries the timestamp it came from. Trust in the model went up as soon as people could check it in a single click.
+**摘要引用来源。** AI 摘要中的每个要点都带有它的时间戳。一旦人们可以一键核验，对模型的信任就随之上升。
 
-**Contradictions get their own treatment.** A flagged inconsistency is the most actionable thing on the page, so it is the only element that uses a warning color, with a direct "jump to" action.
+**矛盾点拥有独立处理方式。** 被标记的不一致是页面上最值得行动的信息，因此它是唯一使用警示色的元素，并配有直接的“跳转”操作。
 
-**Calm, not empty.** Legal software gets visually heavy fast. Stronger grouping, more breathing room, and one clear primary action per card kept the page dense with information but easy to scan.
+**从容，而非空洞。** 法律软件很容易在视觉上变得沉重。更强的分组、更充分的留白，以及每张卡片只有一个清晰的主操作，让页面信息密度不减却易于扫读。
 
-> We stopped asking "where do I start?" The dashboard answers it before you think to ask.
+> 我们不再问“该从哪里开始？”控制台在你想到要问之前就给出了答案。
 
-## Outcome
+## 成果
 
 <Stats
   items={[
-    { value: '38%', label: 'faster first review of a new transcript' },
-    { value: '2.4x', label: 'more AI summaries opened per week' },
-    { value: '91%', label: 'of flagged contradictions reviewed' },
+    { value: '38%', label: '新笔录首次核对速度提升' },
+    { value: '2.4x', label: '每周打开的 AI 摘要数量' },
+    { value: '91%', label: '被标记矛盾获得检视' },
   ]}
 />
 
-The new dashboard shipped to all customers in the spring. The same summary pattern now runs across exhibits and witness timelines, built on the component library we set up during the project.
+新版控制台于当年春季向全部客户发布。同一套摘要模式如今贯穿证据与证人时间线，其基础正是我们在项目中搭建的组件库。

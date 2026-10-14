@@ -13,29 +13,29 @@ interface Props {
 }
 
 const { projects, current, total } = Astro.props;
-const title = current > 1 ? `Work, page ${current} of ${total}` : 'Work';
+const title = current > 1 ? `作品，第 ${current} 页，共 ${total} 页` : '作品';
 ---
 
 <BaseLayout
   title={title}
-  description="Selected product design case studies: dashboards, workflow tools, and mobile products, with the problem, the decisions, and the outcome."
+  description="精选 UI&UX 设计案例研究：控制台、工作流工具和移动产品，包含问题、决策与成果。"
   prevUrl={current > 1 ? workPageHref(current - 1) : undefined}
   nextUrl={current < total ? workPageHref(current + 1) : undefined}
   structuredData={{
     '@context': 'https://schema.org',
     ...breadcrumbs([
-      { name: 'Home', href: '/' },
-      { name: 'Work', href: '/work/' },
+      { name: '首页', href: '/' },
+      { name: '作品', href: '/work/' },
     ]),
   }}
 >
   <PageHero
-    eyebrow={current > 1 ? `Selected work, page ${current}` : 'Selected work'}
-    title="Projects that make complex things feel"
-    highlight="clear and trustworthy."
+    eyebrow={current > 1 ? `精选作品，第 ${current} 页` : '精选作品'}
+    title="让复杂的事物变得"
+    highlight="清晰可信。"
   />
 
-  <section class="shell mt-16 sm:mt-20" aria-label="Case studies">
+  <section class="shell mt-16 sm:mt-20" aria-label="案例研究">
     <div class="grid gap-x-8 gap-y-16 md:grid-cols-2">
       {projects.map((project, index) => (
         <ProjectCard project={project} eager={index < 2} headingLevel="h2" />

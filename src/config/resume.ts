@@ -4,53 +4,53 @@ import shopify from '@/assets/logos/shopify.svg';
 import webflow from '@/assets/logos/webflow.svg';
 
 export const resume = {
-  eyebrow: 'Resume',
-  title: '10+ years shaping digital products through UX, UI, and',
-  highlight: 'systems thinking.',
-  text: 'My work centres on product clarity: bringing structure to messy workflows, overloaded interfaces, and growing systems that need to scale without becoming harder to use.',
+  eyebrow: '简历',
+  title: '10+ 年，通过 UX、UI 与系统思维',
+  highlight: '塑造数字产品。',
+  text: '我的工作核心是体验的清晰度：为混乱的流程、过载的界面，以及需要在扩展中保持易用性的成长型系统建立结构。',
   snapshot: [
-    { label: 'Location', value: 'Lisbon, Portugal' },
-    { label: 'Focus', value: 'UX and product design' },
-    { label: 'Specialties', value: 'Dashboards, workflows, design systems' },
-    { label: 'Languages', value: 'English, Portuguese, Romanian' },
+    { label: '所在地', value: '中国上海' },
+    { label: '专注方向', value: 'UI&UX 设计' },
+    { label: '专长', value: '控制台、工作流、设计系统' },
+    { label: '语言', value: '中文、英语' },
   ],
   experience: [
     {
-      role: 'Lead Product Designer',
-      company: 'Independent',
-      period: '2021 - Present',
-      text: 'Leading interface design, product strategy, and design systems work for SaaS and service platforms across legal, nonprofit, and property.',
+      role: '资深 UI/UX 设计师',
+      company: '独立执业',
+      period: '2021 至今',
+      text: '为法律、公益与地产行业的 SaaS 和服务平台负责界面设计、产品策略与设计系统。',
     },
     {
-      role: 'Senior Product Designer',
+      role: '资深 UI/UX 设计师',
       company: 'Northbound Studio',
       period: '2017 - 2021',
-      text: "Designed workflows, dashboards, and multi-platform products for startup and enterprise clients. Built the studio's shared component library.",
+      text: '为初创与企业客户设计工作流、控制台和多平台产品，并搭建了工作室的共享组件库。',
     },
     {
       role: 'UI/UX Designer',
-      company: 'In-house product teams',
+      company: '企业内部产品团队',
       period: '2014 - 2017',
-      text: 'Built core interface patterns, user flows, and production-ready visual systems for web and mobile products.',
+      text: '为 Web 和移动产品构建核心界面模式、用户流程和可投入生产的视觉系统。',
     },
   ],
   capabilities: [
     {
-      title: 'Product strategy',
-      text: 'Framing problems, prioritizing experience decisions, and aligning product goals with user value.',
+      title: '产品策略',
+      text: '界定问题、排定体验决策的优先级，让产品目标与用户价值保持一致。',
     },
     {
-      title: 'UI systems',
-      text: 'Interface languages that scale across flows, features, and implementation teams.',
+      title: 'UI 系统',
+      text: '能够在流程、功能和实施团队之间规模化延展的界面语言。',
     },
     {
-      title: 'Execution',
-      text: 'Wireframes through high-fidelity UI, refinement, and developer-ready handoff.',
+      title: '落地执行',
+      text: '从线框图到高保真 UI，持续打磨，直至达到可交付开发的标准。',
     },
   ],
   education: [
-    { title: 'MA, Interaction Design', place: 'University of the Arts', period: '2014' },
-    { title: 'BA, Visual Communication', place: 'National University of Arts', period: '2012' },
+    { title: '交互设计硕士', place: 'University of the Arts', period: '2014' },
+    { title: '视觉传达学士', place: 'National University of Arts', period: '2012' },
   ],
   tools: [
     { name: 'Figma', logo: figma, dark: false },

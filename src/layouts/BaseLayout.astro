@@ -90,6 +90,7 @@ const schema = structuredData ?? websiteSchema();
       (() => {
         const storageKey = 'maria-theme';
         const root = document.documentElement;
+        root.classList.add('js');
         const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
         let stored = null;
 
@@ -135,7 +136,7 @@ const schema = structuredData ?? websiteSchema();
   </head>
   <body class="flex min-h-screen flex-col">
     <a class="skip-link" href="#content">
-      Skip to content
+      跳转到内容
     </a>
     <SiteHeader />
     <main id="content" class="flex-1">
@@ -143,5 +144,26 @@ const schema = structuredData ?? websiteSchema();
     </main>
     <SiteFooter closing={closing} />
     {siteConfig.cookieConsent.enabled && <CookieConsent />}
+    <script is:inline>
+      (() => {
+        const animatedItems = document.querySelectorAll('.rise, .reveal');
+
+        if (!('IntersectionObserver' in window)) {
+          animatedItems.forEach((item) => item.classList.add('in-view'));
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              entry.target.classList.toggle('in-view', entry.isIntersecting);
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0 },
+        );
+
+        animatedItems.forEach((item) => observer.observe(item));
+      })();
+    </script>
   </body>
 </html>

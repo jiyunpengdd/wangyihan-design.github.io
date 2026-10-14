@@ -1,39 +1,39 @@
 export const about = {
-  eyebrow: 'About',
-  title: 'I make complicated things feel',
-  highlight: 'clear and easy to use.',
-  text: "I'm Maria, a product designer focused on turning dense workflows, fuzzy requirements, and overloaded interfaces into experiences people can navigate with confidence.",
-  portraitAlt: 'Portrait of Maria smiling at her desk',
+  eyebrow: '关于',
+  title: '我把复杂的事物变得',
+  highlight: '清晰易用。',
+  text: '我是 Han，一位常驻上海的 UI&UX 设计师，专注于把繁杂的流程、模糊的需求和过载的界面，变成人们可以自信驾驭的体验。',
+  portraitAlt: 'Han 在桌前微笑的照片',
   sections: [
     {
-      title: 'Background',
+      title: '背景',
       paragraphs: [
-        "Over the last ten years I've worked across SaaS, operations platforms, and internal tools, where the design challenge is rarely about making something look good. More often it's about helping people understand what matters, what to do next, and why the product deserves their trust.",
-        'I sit somewhere between product thinking, systems design, and interface craft. I care about hierarchy, pacing, and the small decisions that make an experience feel intentional rather than merely complete.',
+        '过去十年，我在 SaaS、运营平台和内部工具领域工作。这里的设计挑战很少是“把东西做得好看”，更多是帮助人们理解什么重要、下一步该做什么，以及为什么这个产品值得信任。',
+        '我处在产品思维、系统设计与界面打磨的交界处。我在意层级、节奏，以及那些让体验显得“有意图”而非仅仅“做完了”的小决策。',
       ],
     },
     {
-      title: 'How I work',
+      title: '工作方式',
       paragraphs: [
-        'I work best in the messy middle: when requirements are incomplete, the product has started to sprawl, and the team needs someone to create clarity without oversimplifying the problem.',
-        'That usually means stepping back to understand the structure of the experience, deciding what deserves attention first, and building a visual system strong enough to carry that logic all the way to the final UI.',
+        '我最擅长在混乱中段工作：需求还不完整、产品已经开始蔓延，团队需要有人在不把问题过度简化的前提下建立清晰。',
+        '这通常意味着先退一步理解体验的结构，决定什么值得优先关注，再搭建一套足够强大的视觉系统，把这套逻辑一路带到最终界面。',
       ],
     },
     {
-      title: 'Focus',
+      title: '专注领域',
       paragraphs: [
-        "I'm most at home in dashboards, workflow tools, AI-assisted interfaces, and products where removing friction has a measurable effect on how confident people feel.",
-        "If something is too dense, too noisy, or too hard to follow, that's usually where I do my best work.",
+        '我最熟悉的领域是控制台、工作流工具、AI 辅助界面，以及减少摩擦能切实提升用户信心的产品。',
+        '如果某个东西太密集、太嘈杂或太难跟上，那往往正是我能发挥得最好的地方。',
       ],
     },
   ],
   principles: {
-    title: 'Principles',
+    title: '设计原则',
     items: [
-      { title: 'Clarity over cleverness', text: 'If a pattern needs explaining, it needs redesigning.' },
-      { title: 'Design the order', text: 'Sequence and hierarchy do more than any single screen.' },
-      { title: 'Show the work early', text: 'Rough and shared beats polished and late.' },
-      { title: 'Systems, then surfaces', text: 'Good components make good screens inevitable.' },
+      { title: '清晰胜过炫技', text: '如果一个模式需要解释，那它就需要重新设计。' },
+      { title: '设计顺序', text: '顺序与层级比任何单个页面都更重要。' },
+      { title: '尽早展示方案', text: '粗糙但及早分享，胜过精致却姗姗来迟。' },
+      { title: '先系统，后界面', text: '好的组件让好的页面自然发生。' },
     ],
   },
 };

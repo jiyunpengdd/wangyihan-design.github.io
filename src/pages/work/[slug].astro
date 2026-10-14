@@ -27,16 +27,16 @@ const { Content } = await render(project);
 const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', position: 'top', format: 'png' });
 
 const meta = [
-  { label: 'Client', value: client },
-  { label: 'Year', value: String(year) },
-  { label: 'Role', value: role },
-  duration && { label: 'Duration', value: duration },
-  team && { label: 'Team', value: team },
+  { label: '客户', value: client },
+  { label: '年份', value: String(year) },
+  { label: '角色', value: role },
+  duration && { label: '周期', value: duration },
+  team && { label: '团队', value: team },
 ].filter((item): item is { label: string; value: string } => Boolean(item));
 ---
 
 <BaseLayout
-  title={`${client} case study`}
+  title={`${client} 案例研究`}
   description={summary}
   image={cover}
   imageAlt={coverAlt}
@@ -45,11 +45,11 @@ const meta = [
 >
   <article style={`--tint: ${tint}`}>
     <header class="shell pt-12 sm:pt-16">
-      <nav aria-label="Breadcrumb" class="rise">
+      <nav aria-label="面包屑导航" class="rise">
         <ol class="flex items-center gap-2 text-sm text-muted">
           <li>
             <a class="hover:text-ink" href="/work/">
-              Work
+              作品
             </a>
           </li>
           <li aria-hidden="true">/</li>
@@ -78,14 +78,14 @@ const meta = [
         </dl>
         {url && (
           <a class="btn btn-ghost btn-sm self-start" href={url} rel="noopener">
-            Visit {client}
+            访问 {client}
             <Icon name="arrow-up-right" class="icon-nudge-diagonal size-4" />
           </a>
         )}
       </div>
 
       {services.length > 0 && (
-        <ul class="mt-6 flex flex-wrap gap-1.5" aria-label="Services">
+          <ul class="mt-6 flex flex-wrap gap-1.5" aria-label="服务">
           {services.map((service) => (
             <li class="chip">{service}</li>
           ))}
@@ -94,7 +94,7 @@ const meta = [
     </header>
 
     <div class="shell mt-12 sm:mt-16">
-      <div class="tint-panel overflow-hidden rounded-card p-[4%] sm:p-[6%]">
+      <div class="reveal tint-panel overflow-hidden rounded-card p-[4%] sm:p-[6%]">
         <Image
           src={cover}
           alt={coverAlt}
@@ -109,7 +109,7 @@ const meta = [
     </div>
 
     <div class="shell mt-16 sm:mt-24">
-      <div class="prose case-prose">
+      <div class="reveal prose case-prose">
         <Content components={mdxComponents} />
       </div>
     </div>

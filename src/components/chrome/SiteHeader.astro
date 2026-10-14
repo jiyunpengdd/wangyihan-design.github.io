@@ -13,10 +13,10 @@ const current = (href: string) => (path === href ? 'page' : path.startsWith(href
     <a href="/" class="flex items-center gap-2.5 rounded-lg text-[1.15rem] font-semibold tracking-[-0.03em]">
       <Logomark />
       <span>{siteConfig.name}</span>
-      <span class="sr-only">, home</span>
+      <span class="sr-only">，首页</span>
     </a>
 
-    <nav aria-label="Main" class="ml-auto hidden md:block">
+    <nav aria-label="主导航" class="ml-auto hidden md:block">
       <ul class="flex items-center gap-1">
         {navigation.map((link) => (
           <li>
@@ -39,35 +39,35 @@ const current = (href: string) => (path === href ? 'page' : path.startsWith(href
         commandfor="mobile-nav"
         command="show-modal"
         aria-haspopup="dialog"
-        aria-label="Menu"
+        aria-label="菜单"
       >
         <Icon name="menu" class="size-5" />
       </button>
     </div>
   </div>
 
-  <dialog id="mobile-nav" aria-label="Menu" class="mobile-nav md:hidden">
+  <dialog id="mobile-nav" aria-label="菜单" class="mobile-nav md:hidden">
     <div class="shell flex h-(--header-h) items-center justify-between">
       <a href="/" class="flex items-center gap-2.5 text-[1.15rem] font-semibold tracking-[-0.03em]">
-        <Logomark />
+      <Logomark />
         <span>{siteConfig.name}</span>
-        <span class="sr-only">, home</span>
+        <span class="sr-only">，首页</span>
       </a>
       <button
         type="button"
         class="grid size-10 place-items-center rounded-full hover:bg-sunken"
         commandfor="mobile-nav"
         command="close"
-        aria-label="Close menu"
+        aria-label="关闭菜单"
       >
         <Icon name="x" class="size-5" />
       </button>
     </div>
-    <nav aria-label="Mobile" class="shell mt-4">
+    <nav aria-label="移动端" class="shell mt-4">
       <ul class="grid">
         <li>
           <a href="/" class="mobile-link" aria-current={path === '/' ? 'page' : undefined}>
-            Home
+            首页
           </a>
         </li>
         {navigation.map((link) => (

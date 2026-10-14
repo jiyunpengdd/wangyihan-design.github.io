@@ -1,29 +1,29 @@
 ---
 layout: ../layouts/LegalLayout.astro
-title: Cookie Policy
-description: What this site stores in your browser, how your consent is saved, and how optional analytics and marketing are handled.
+title: Cookie 政策
+description: 本网站在浏览器中存储了什么、你的同意如何保存，以及可选的分析与营销工具如何处理。
 updated: 2026-10-08
 ---
 
-## What this site stores
+## 本网站存储了什么
 
-This site stores two small preference records in your browser: your color theme and your cookie choices. They are saved in `localStorage`, are not sent with page requests, and only remember your choices in this browser.
+本网站在浏览器中存储两条小型偏好记录：你的配色主题和 Cookie 选择。它们保存在 `localStorage` 中，不会随页面请求发送，只用于在当前浏览器中记住你的选择。
 
-| Key                    | Type          | Category  | Purpose                                                               |
+| 键名                   | 类型          | 类别      | 用途                                                                  |
 | ---------------------- | ------------- | --------- | --------------------------------------------------------------------- |
-| `maria-theme`          | Local storage | Essential | Remembers whether you picked light or dark mode                       |
-| `maria-cookie-consent` | Local storage | Essential | Remembers your consent choices, when you made them, and their version |
+| `maria-theme`          | 本地存储      | 必要      | 记住你选择了浅色还是深色模式                                          |
+| `maria-cookie-consent` | 本地存储      | 必要      | 记住你的同意选择、选择时间及其版本                                    |
 
-## Consent categories
+## 同意类别
 
-Essential storage is always on, because it remembers the two choices above. Analytics and marketing are optional and stay off until you allow them.
+必要存储始终开启，因为它需要记住上面两项选择。分析与营销是可选的，在你允许之前保持关闭。
 
-No analytics or marketing tools are connected by default. The categories exist so tools added later only load with your consent.
+默认情况下没有连接任何分析或营销工具。这些类别的存在是为了让日后添加的工具只在你同意后才加载。
 
-## Changing your preferences
+## 更改你的偏好
 
-You can change your choices at any time with the **Cookie preferences** button in the footer, or <button type="button" class="link" data-cookie-preferences>open your cookie preferences</button> now.
+你可以随时通过页脚的 **Cookie 偏好设置** 按钮更改选择，或现在就 <button type="button" class="link" data-cookie-preferences>打开 Cookie 偏好设置</button>。
 
-## For site owners
+## 给网站所有者
 
-The consent script exposes `window.mariaCookieConsent` so optional scripts can check whether analytics or marketing is allowed before they load, and dispatches a `maria:cookieConsentChanged` event whenever a visitor saves new choices.
+同意脚本暴露了 `window.mariaCookieConsent`，可选脚本可以在加载前检查分析或营销是否被允许，并在访客保存新选择时派发 `maria:cookieConsentChanged` 事件。
