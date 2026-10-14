@@ -1,61 +1,71 @@
+import type { ImageMetadata } from 'astro';
+import adobeAftereffects from '@/assets/logos/adobe-aftereffects.svg';
+import adobeIllustrator from '@/assets/logos/adobe-illustrator.svg';
+import adobePhotoshop from '@/assets/logos/adobe-photoshop.svg';
+import claude from '@/assets/logos/claude.svg';
+import codex from '@/assets/logos/codex.png';
+import coze from '@/assets/logos/coze.svg';
+import cursor from '@/assets/logos/cursor.svg';
 import figma from '@/assets/logos/figma.svg';
-import framer from '@/assets/logos/framer.svg';
-import shopify from '@/assets/logos/shopify.svg';
-import webflow from '@/assets/logos/webflow.svg';
+import protopie from '@/assets/logos/protopie.png';
+
+type ResumeTool = {
+  name: string;
+  logo?: ImageMetadata;
+  invertDark?: boolean;
+  mark?: string;
+};
 
 export const resume = {
   eyebrow: '简历',
-  title: '10+ 年，通过 UX、UI 与系统思维',
-  highlight: '塑造数字产品。',
+  title: '以用户思维，深入参与',
+  highlight: '产品与服务打造。',
   text: '我的工作核心是体验的清晰度：为混乱的流程、过载的界面，以及需要在扩展中保持易用性的成长型系统建立结构。',
   snapshot: [
-    { label: '所在地', value: '中国上海' },
-    { label: '专注方向', value: 'UI&UX 设计' },
-    { label: '专长', value: '控制台、工作流、设计系统' },
-    { label: '语言', value: '中文、英语' },
+    { label: '求职意向', value: '高级 UI 设计师' },
+    { label: '出生日期', value: '1990.12.10' },
+    { label: '电话', value: '18580334702' },
+    { label: '邮箱', value: '807743002@qq.com' },
   ],
   experience: [
     {
-      role: '资深 UI/UX 设计师',
-      company: '独立执业',
-      period: '2021 至今',
-      text: '为法律、公益与地产行业的 SaaS 和服务平台负责界面设计、产品策略与设计系统。',
+      role: '高级 UI/UX 设计师',
+      company: '康成投资（中国）有限公司（大润发）',
+      period: '2015.05 - 2024.06',
+      text: '参与大润发 App 与门店数字化改造相关设计，覆盖 Web 端、移动生鲜 App、无人收银和门店 PDA 等工具。',
     },
     {
-      role: '资深 UI/UX 设计师',
-      company: 'Northbound Studio',
-      period: '2017 - 2021',
-      text: '为初创与企业客户设计工作流、控制台和多平台产品，并搭建了工作室的共享组件库。',
-    },
-    {
-      role: 'UI/UX Designer',
-      company: '企业内部产品团队',
-      period: '2014 - 2017',
-      text: '为 Web 和移动产品构建核心界面模式、用户流程和可投入生产的视觉系统。',
+      role: '高级 UI/UX 设计师',
+      company: '西安中锐创联科技有限公司',
+      period: '2025.10 - 至今',
+      text: '负责客户端相关设计工作，并通过 AI 工具提升设计执行与交付协作效率。',
     },
   ],
-  capabilities: [
+  achievements: [
     {
-      title: '产品策略',
-      text: '界定问题、排定体验决策的优先级，让产品目标与用户价值保持一致。',
+      title: '参与大润发两次关键转型',
+      text: '从 Web 端到手机生鲜 App，从线下大卖场到线上线下协同发展。跟进大润发 App 从 0 到 1 亿注册用户的迭代；过程中与运营、产品、研发持续沟通协作，并与全国五大区数据运营中心跨团队配合，建立了较强的沟通协作能力、抗压能力和主动迎接新领域挑战的能力。',
     },
     {
-      title: 'UI 系统',
-      text: '能够在流程、功能和实施团队之间规模化延展的界面语言。',
+      title: '负责门店数字化改造工具设计',
+      text: '参与门店无人收银系统、门店 PDA 等使用工具的研发设计，提高线上门店、仓储与全链路协作效率，节省门店人力成本，为门店数字化升级改造提供基础。',
     },
     {
-      title: '落地执行',
-      text: '从线框图到高保真 UI，持续打磨，直至达到可交付开发的标准。',
+      title: '利用 AI 工具提升工作效率',
+      text: '在中锐创联客户端工作中，使用 AI 工具辅助设计执行与交付协作，提升整体工作效率。',
     },
   ],
-  education: [
-    { title: '交互设计硕士', place: 'University of the Arts', period: '2014' },
-    { title: '视觉传达学士', place: 'National University of Arts', period: '2012' },
-  ],
+  education: [{ title: '重庆工商大学', place: '影视动画', period: '' }],
   tools: [
-    { name: 'Figma', logo: figma, dark: false },
-    { name: 'Framer', logo: framer, dark: true },
-    { name: 'Webflow', logo: webflow, dark: false },
-    { name: 'Shopify', logo: shopify, dark: false },
-  ],
+    { name: 'Figma', logo: figma },
+    { name: 'Adobe Photoshop', logo: adobePhotoshop, invertDark: true },
+    { name: 'Adobe Illustrator', logo: adobeIllustrator, invertDark: true },
+    { name: 'Adobe After Effects', logo: adobeAftereffects, invertDark: true },
+    { name: 'ProtoPie', logo: protopie },
+    { name: '手绘插画', mark: '绘' },
+    { name: 'Codex', logo: codex },
+    { name: 'Claude', logo: claude },
+    { name: 'Cursor', logo: cursor, invertDark: true },
+    { name: 'Coze', logo: coze },
+  ] satisfies ResumeTool[],
 };

@@ -13,10 +13,10 @@ const initials = (name: string) =>
 
 <section class="shell mt-28 sm:mt-36" aria-labelledby="testimonials-title">
   <SectionHead id="testimonials-title" eyebrow={testimonials.eyebrow} title={testimonials.title} />
-  <ul class="mt-12 grid gap-5 lg:grid-cols-3">
+  <ul class="testimonial-grid mt-12 grid gap-5 lg:grid-cols-3">
     {testimonials.items.map((item) => (
       <li class="reveal">
-        <figure class="flex h-full flex-col rounded-card border border-line bg-surface p-7 sm:p-8">
+        <figure class="testimonial-card flex h-full flex-col rounded-card border border-line bg-surface p-7 sm:p-8">
           <Icon name="quote" class="size-6 text-muted" />
           <blockquote class="mt-6 flex-1 text-[1.15rem] leading-relaxed text-ink">
             <p>{item.quote}</p>
@@ -38,3 +38,73 @@ const initials = (name: string) =>
     ))}
   </ul>
 </section>
+
+<style>
+  .testimonial-card {
+    --rotate-x: 0deg;
+    --rotate-y: 0deg;
+    --card-scale: 1;
+    position: relative;
+    transform: perspective(900px) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) scale(var(--card-scale));
+    transition:
+      transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 180ms ease,
+      filter 180ms ease,
+      opacity 180ms ease,
+      box-shadow 180ms ease;
+    will-change: transform;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .testimonial-card:hover {
+      --card-scale: 1.035;
+      border-color: color-mix(in oklab, var(--line-strong) 72%, var(--ink));
+      box-shadow: var(--shadow-shot);
+      z-index: 1;
+    }
+
+    .testimonial-grid:has(.testimonial-card:hover) .testimonial-card:not(:hover) {
+      --card-scale: 0.97;
+      filter: brightness(0.96);
+      opacity: 0.82;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .testimonial-card {
+      transform: none;
+      transition: none;
+      will-change: auto;
+    }
+  }
+</style>
+
+<script>
+  const grid = document.querySelector('.testimonial-grid');
+
+  if (grid) {
+    const resetTilt = (card: HTMLElement) => {
+      card.style.setProperty('--rotate-x', '0deg');
+      card.style.setProperty('--rotate-y', '0deg');
+    };
+
+    grid.addEventListener('pointermove', (event) => {
+      const pointerEvent = event as PointerEvent;
+      if (pointerEvent.pointerType !== 'mouse') return;
+
+      const card = event.target instanceof Element ? event.target.closest<HTMLElement>('.testimonial-card') : null;
+      if (!card) return;
+
+      const { left, top, width, height } = card.getBoundingClientRect();
+      const pointerX = (pointerEvent.clientX - left) / width - 0.5;
+      const pointerY = (pointerEvent.clientY - top) / height - 0.5;
+
+      card.style.setProperty('--rotate-x', `${pointerY * -8}deg`);
+      card.style.setProperty('--rotate-y', `${pointerX * 8}deg`);
+    });
+
+    grid.addEventListener('pointerleave', () => {
+      grid.querySelectorAll<HTMLElement>('.testimonial-card').forEach(resetTilt);
+    });
+  }
+</script>

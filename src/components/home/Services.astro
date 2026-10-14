@@ -6,9 +6,9 @@ import { services } from '@/config/home';
 
 <section class="shell mt-28 sm:mt-36" aria-labelledby="services-title">
   <SectionHead id="services-title" eyebrow={services.eyebrow} title={services.title} />
-  <ul class="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+  <ul class="service-grid mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
     {services.items.map((item) => (
-      <li class="reveal flex flex-col bg-surface p-7 sm:p-8">
+      <li class="service-card reveal flex flex-col bg-surface p-7 sm:p-8">
         <span class="grid size-11 place-items-center rounded-xl bg-accent text-on-accent">
           <Icon name={item.icon} class="size-5" />
         </span>
@@ -18,3 +18,102 @@ import { services } from '@/config/home';
     ))}
   </ul>
 </section>
+
+<style>
+  .service-card {
+    --spot-x: 50%;
+    --spot-y: 40%;
+    --spotlight: var(--accent);
+    position: relative;
+    isolation: isolate;
+  }
+
+  :root .service-card {
+    --spot-max-opacity: 0.24;
+    --edge-max-opacity: 0.64;
+  }
+
+  :root.dark .service-card {
+    --spotlight: color-mix(in oklab, var(--accent) 62%, white);
+    --spot-max-opacity: 0.38;
+    --edge-max-opacity: 1;
+  }
+
+  .service-card > :global(*) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .service-card::before,
+  .service-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 240ms ease;
+  }
+
+  .service-card::before {
+    background: radial-gradient(
+      circle 260px at var(--spot-x) var(--spot-y),
+      color-mix(in oklab, var(--spotlight) 48%, transparent),
+      transparent 74%
+    );
+  }
+
+  .service-card::after {
+    padding: 1px;
+    background: radial-gradient(
+      circle 220px at var(--spot-x) var(--spot-y),
+      color-mix(in oklab, var(--spotlight) 72%, transparent),
+      transparent 74%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .service-card:hover::before {
+      opacity: var(--spot-max-opacity);
+    }
+
+    .service-card:hover::after {
+      opacity: var(--edge-max-opacity);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .service-card::before,
+    .service-card::after {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const grid = document.querySelector('.service-grid');
+
+  if (grid) {
+    const paintSpot = (card: HTMLElement, event: PointerEvent) => {
+      const { left, top } = card.getBoundingClientRect();
+      card.style.setProperty('--spot-x', `${event.clientX - left}px`);
+      card.style.setProperty('--spot-y', `${event.clientY - top}px`);
+    };
+
+    grid.addEventListener('pointermove', (event) => {
+      const pointerEvent = event as PointerEvent;
+      if (pointerEvent.pointerType !== 'mouse') return;
+
+      const card = event.target instanceof Element ? event.target.closest<HTMLElement>('.service-card') : null;
+      if (card) paintSpot(card, pointerEvent);
+    });
+  }
+</script>

@@ -1,0 +1,46 @@
+---
+interface Props {
+  label: string;
+  note?: string;
+  ratio?: string;
+  panel?: string;
+}
+
+const { label, note, ratio = '16 / 9', panel = '#dbe6ff' } = Astro.props;
+---
+
+<div class="case-placeholder" style={`--panel: ${panel}; --placeholder-ratio: ${ratio}`}>
+  <strong>{label}</strong>
+  {note && <span>{note}</span>}
+</div>
+
+<style>
+  .case-placeholder {
+    display: grid;
+    place-content: center;
+    gap: 0.35rem;
+    width: 100%;
+    aspect-ratio: var(--placeholder-ratio);
+    border: 1px solid color-mix(in oklab, var(--panel) 48%, var(--line));
+    border-radius: var(--radius-card);
+    background: linear-gradient(135deg, color-mix(in oklab, var(--panel) 52%, transparent), transparent), var(--panel);
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .case-placeholder strong {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .case-placeholder span {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  :global(.dark) .case-placeholder {
+    background:
+      linear-gradient(135deg, color-mix(in oklab, var(--panel) 16%, transparent), transparent),
+      color-mix(in oklab, var(--panel) 14%, var(--surface));
+  }
+</style>

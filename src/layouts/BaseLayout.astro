@@ -4,6 +4,7 @@ import { getImage } from 'astro:assets';
 import CookieConsent from '@/components/chrome/CookieConsent.astro';
 import SiteFooter from '@/components/chrome/SiteFooter.astro';
 import SiteHeader from '@/components/chrome/SiteHeader.astro';
+import SideRays from '@/components/ui/SideRays.astro';
 import { siteConfig } from '@/config/site';
 import { websiteSchema } from '@/lib/schema';
 import '@/styles/global.css';
@@ -135,6 +136,19 @@ const schema = structuredData ?? websiteSchema();
     </noscript>
   </head>
   <body class="flex min-h-screen flex-col">
+    <SideRays
+      speed={2.5}
+      rayColor1="#FF2D95"
+      rayColor2="#96c8ff"
+      intensity={3}
+      spread={2.8}
+      origin="top-right"
+      tilt={0}
+      saturation={1.5}
+      blend={0.75}
+      falloff={0.95}
+      opacity={1.0}
+    />
     <a class="skip-link" href="#content">
       跳转到内容
     </a>

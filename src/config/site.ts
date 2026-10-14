@@ -5,30 +5,31 @@ export interface NavLink {
 
 export const siteConfig = {
   name: 'Han',
-  title: 'Han - UI&UX 设计师作品集',
+  title: 'Han - 高级 UI/UX 设计师作品集',
   description:
-    'Han 是一位常驻上海的 UI&UX 设计师，擅长将繁杂的流程与模糊的需求转化为清晰、可信赖的数字产品。这里收录了精选作品、案例研究与简历。',
+    'Han 是一位常驻上海的高级 UI/UX 设计师，关注用户思维、服务体验与数字化工具。这里收录了精选作品、案例研究与简历。',
   siteUrl: 'https://wangyihan-design.github.io',
   language: 'zh-CN',
   locale: 'zh_CN',
   dateLocale: 'zh-CN',
-  socialImage: '/og-image.png',
+  socialImage: '/og-image.jpg',
 
   author: {
     name: 'Han',
-    role: 'UI&UX 设计师',
+    role: '高级 UI/UX 设计师',
     location: '中国上海',
-    email: 'hello@example.com',
+    email: '807743002@qq.com',
+    phone: '18580334702',
   },
 
   /** The pill above the homepage headline. Set `enabled: false` to remove it. */
   availability: {
     enabled: true,
-    label: '2027 年 1 月起可承接新项目',
+    label: 'Base上海·随时到岗',
   },
 
   /** The button at the end of the header and in the mobile menu. */
-  action: { label: '联系我', href: 'mailto:hello@example.com' },
+  action: { label: '联系我', href: 'mailto:807743002@qq.com' },
 
   /** A PDF in `public/`, offered on the resume page. Leave empty to hide the button. */
   resumePdf: '',
@@ -38,12 +39,7 @@ export const siteConfig = {
     enabled: true,
   },
 
-  socials: [
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/' },
-    { label: 'Dribbble', href: 'https://dribbble.com/' },
-    { label: 'Behance', href: 'https://www.behance.net/' },
-    { label: 'Instagram', href: 'https://www.instagram.com/' },
-  ] satisfies NavLink[],
+  socials: [{ label: 'GitHub', href: 'https://github.com/byunghun-jake' }] satisfies NavLink[],
 };
 
 export const navigation: NavLink[] = [

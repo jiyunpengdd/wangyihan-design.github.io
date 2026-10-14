@@ -3,7 +3,7 @@ export const about = {
   title: '我把复杂的事物变得',
   highlight: '清晰易用。',
   text: '我是 Han，一位常驻上海的 UI&UX 设计师，专注于把繁杂的流程、模糊的需求和过载的界面，变成人们可以自信驾驭的体验。',
-  portraitAlt: 'Han 在桌前微笑的照片',
+  portraitAlt: 'Han 的照片',
   sections: [
     {
       title: '背景',

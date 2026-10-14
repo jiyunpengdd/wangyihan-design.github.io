@@ -9,6 +9,7 @@ const person = {
   name: siteConfig.author.name,
   jobTitle: siteConfig.author.role,
   email: `mailto:${siteConfig.author.email}`,
+  telephone: siteConfig.author.phone,
   url: siteConfig.siteUrl,
   sameAs: siteConfig.socials.map((social) => social.href),
 };

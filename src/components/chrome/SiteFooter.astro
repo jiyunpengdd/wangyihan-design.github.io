@@ -24,7 +24,7 @@ const year = new Date().getFullYear();
         <WarpText
           as="h2"
           id="closing-title"
-          class="mt-6 text-headline"
+          class="mt-6 closing-heading text-headline"
           text={closing.title}
           highlight={closing.highlight}
           highlightClass="serif text-accent"
@@ -135,6 +135,12 @@ const year = new Date().getFullYear();
 
   .footer-link:hover {
     color: var(--muted);
+  }
+
+  :global(.closing-heading .warp-heading__fallback) {
+    line-break: strict;
+    white-space: pre-wrap;
+    text-wrap: wrap;
   }
 
   .closing-grid {

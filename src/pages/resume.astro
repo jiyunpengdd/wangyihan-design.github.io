@@ -10,7 +10,7 @@ import { profileSchema } from '@/lib/schema';
 
 <BaseLayout
   title="简历"
-  description={`${siteConfig.author.name} 的简历：十年 UI&UX 设计生涯的经验、能力、教育与工具。`}
+  description={`${siteConfig.author.name} 的简历：高级 UI/UX 设计师的求职意向、技能、工作经历、教育与项目成果。`}
   type="profile"
   structuredData={profileSchema('/resume/')}
 >
@@ -27,6 +27,10 @@ import { profileSchema } from '@/lib/schema';
         href={`mailto:${siteConfig.author.email}`}
       >
         {siteConfig.author.email}
+        <Icon name="arrow-up-right" class="icon-nudge-diagonal size-4" />
+      </a>
+      <a class="btn btn-ghost" href={`tel:${siteConfig.author.phone}`}>
+        {siteConfig.author.phone}
         <Icon name="arrow-up-right" class="icon-nudge-diagonal size-4" />
       </a>
     </div>
@@ -65,18 +69,18 @@ import { profileSchema } from '@/lib/schema';
       </ol>
     </section>
 
-    <section class="resume-row reveal" aria-labelledby="capabilities-title">
-      <h2 id="capabilities-title" class="eyebrow self-start">
-        专业能力
+    <section class="resume-row reveal" aria-labelledby="achievements-title">
+      <h2 id="achievements-title" class="eyebrow self-start">
+        工作成果
       </h2>
-      <ul class="grid gap-8 sm:grid-cols-3">
-        {resume.capabilities.map((item) => (
+      <ol class="grid gap-8">
+        {resume.achievements.map((item) => (
           <li>
             <h3 class="font-semibold">{item.title}</h3>
-            <p class="mt-2 text-muted">{item.text}</p>
+            <p class="mt-2 max-w-3xl text-body">{item.text}</p>
           </li>
         ))}
-      </ul>
+      </ol>
     </section>
 
     <section class="resume-row reveal" aria-labelledby="education-title">
@@ -90,7 +94,7 @@ import { profileSchema } from '@/lib/schema';
               <span class="font-semibold">{item.title}</span>
               <span class="text-muted">, {item.place}</span>
             </span>
-            <span class="text-sm text-muted">{item.period}</span>
+            {item.period && <span class="text-sm text-muted">{item.period}</span>}
           </li>
         ))}
       </ul>
@@ -98,18 +102,17 @@ import { profileSchema } from '@/lib/schema';
 
     <section class="resume-row reveal" aria-labelledby="tools-title">
       <h2 id="tools-title" class="eyebrow self-start">
-        工具
+        主要技能
       </h2>
-      <ul class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {resume.tools.map((tool) => (
           <li class="flex items-center gap-3 rounded-panel border border-line bg-surface p-3.5">
-            <span
-              class:list={[
-                'grid size-11 place-items-center rounded-xl border',
-                tool.dark ? 'border-[#121211] bg-[#121211]' : 'border-line bg-sunken',
-              ]}
-            >
-              <Image src={tool.logo} alt="" class="size-6 object-contain" />
+            <span class="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-sunken text-sm font-semibold text-body">
+              {tool.logo ? (
+                <Image src={tool.logo} alt="" class={`size-6 object-contain ${tool.invertDark ? 'dark:invert' : ''}`} />
+              ) : (
+                tool.mark
+              )}
             </span>
             <span class="font-medium">{tool.name}</span>
           </li>

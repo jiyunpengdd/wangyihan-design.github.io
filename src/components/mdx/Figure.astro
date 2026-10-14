@@ -8,9 +8,11 @@ interface Props {
   caption?: string;
   /** Drop the tinted frame around the image. */
   plain?: boolean;
+  /** Conserve vertical space with tall documentation screenshots. */
+  fitHeight?: boolean;
 }
 
-const { src, alt, caption, plain = false } = Astro.props;
+const { src, alt, caption, plain = false, fitHeight = false } = Astro.props;
 ---
 
 <figure class="not-prose">
@@ -21,7 +23,7 @@ const { src, alt, caption, plain = false } = Astro.props;
       widths={[800, 1200, 1600, 2400, 3200]}
       sizes="(min-width: 80rem) 68rem, 90vw"
       quality={90}
-      class:list={['w-full', !plain && 'shot']}
+      class:list={[fitHeight ? 'mx-auto h-auto max-h-[86vh] w-auto' : 'w-full', !plain && 'shot']}
     />
   </div>
   {caption && <figcaption class="mx-auto mt-4 max-w-[44rem] text-[0.95rem] text-muted">{caption}</figcaption>}

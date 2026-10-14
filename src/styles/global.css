@@ -148,7 +148,7 @@
     -webkit-text-size-adjust: 100%;
   }
 
-@media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;
     }
@@ -530,7 +530,7 @@
   }
 }
 
-  @media (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: no-preference) {
   .rise {
     animation: rise 900ms var(--ease-out-expo) both;
     animation-delay: calc(var(--rise-step, 0) * 80ms);
@@ -570,7 +570,9 @@
         rise-exit linear both;
       animation-delay: calc(var(--rise-step, 0) * 80ms), 0ms;
       animation-timeline: auto, view();
-      animation-range: normal, exit 0% exit 40%;
+      animation-range:
+        normal,
+        exit 0% exit 40%;
     }
 
     .reveal {
@@ -578,7 +580,9 @@
         reveal linear both,
         reveal-exit linear both;
       animation-timeline: view(), view();
-      animation-range: entry 0% entry 40%, exit 0% exit 45%;
+      animation-range:
+        entry 0% entry 40%,
+        exit 0% exit 45%;
     }
   }
 }

@@ -1,0 +1,97 @@
+---
+title: 让 AI 全生命周期平台拥有可持续生长的组件库
+client: RayZ.ALM
+summary: 面向 RayZ.ALM 搭建一套以 Design Token、Variables 和组件变体为核心的 B 端设计系统，让复杂业务页面可以更快组装、维护和扩展。
+year: 2026
+role: Design System Owner
+services: [设计系统, Component, Variants, Design Token, Prototype]
+duration: 12 周
+team: 1 名产品经理，5 名工程师
+cover: ./design-system-cover.png
+coverAlt: RayZ.ALM 登录页，品牌 Logo 居中，下方为账号、密码、30 天免登录和登录按钮
+tint: '#d9e6ff'
+order: 0
+featured: true
+---
+
+import componentFormInputs from './component-form-inputs.png';
+import componentOverlays from './component-overlays.png';
+import systemTokens from './system-tokens.png';
+import projectManagementTemplate from './template-project-management.png';
+import reviewWorkflowTemplate from './template-review-workflow.png';
+
+RayZ.ALM 的产品链路覆盖需求、研发、测试和交付，页面数量持续增加。早期页面中的按钮、表单、表格和状态样式各自生长，新页面越做越快，但一致性和维护成本却越来越难控制。
+
+## 系统结构
+
+我把设计系统拆成清晰的四层：基础 Token 负责颜色、间距、字号和圆角；Variables 承载语义化场景；基础组件通过 Variants 管理状态和尺寸；组合组件与页面模板承接具体业务。
+
+这套结构让设计师在页面层只处理业务信息，不再重复决定一次按钮该用什么颜色或一段表单该怎么对齐。
+
+<div class="not-prose mx-auto max-w-[48rem]">
+  <Figure
+    fitHeight
+    src={systemTokens}
+    alt="后台设计规范变量系统，包含颜色、文字、间距、圆角、投影和图标描边的基础变量"
+    caption="系统结构先落到可复用的规范变量，再由组件和页面模板继续消费。"
+  />
+</div>
+
+## Design Token 与 Variables
+
+基础层没有直接写死到组件里，而是先建立色彩、字号、间距、圆角和阴影的命名规则。再把这些基础值映射成 `bg/surface`、`text/primary`、`status/warning` 这类语义变量。
+
+这样换主题、调整状态色或适配深浅色模式时，只需要更新对应变量，不需要逐页修改组件。
+
+| Token 层级         | 示例命名                                      | 作用                                                     |
+| ------------------ | --------------------------------------------- | -------------------------------------------------------- |
+| Primitive          | `color/blue/600`, `space/4`, `radius/8`       | 记录颜色、字号、间距和圆角等基础值，不直接暴露给业务页面 |
+| Semantic Variable  | `bg/surface`, `text/primary`, `status/danger` | 把基础值绑定到具体场景，让组件只消费语义含义             |
+| Component Property | `size`, `tone`, `state`                       | 组合成 Variants，覆盖默认、悬停、聚焦、禁用和错误等状态  |
+| Mode               | `light`, `dark`                               | 通过同一组语义变量切换主题，避免逐页维护两套样式         |
+
+## 组件与 Variants
+
+核心组件优先覆盖高频业务场景：按钮、输入框、选择器、状态标签、表格、筛选器、表单项、弹窗和步骤条。每个组件都按尺寸、类型、状态和内容长度整理成 Variants。
+
+Auto Layout 负责处理内部间距、对齐和自适应宽度，让组件在文本变长、字段增减或容器变化时仍然稳定。
+
+<div class="not-prose grid items-start gap-6 lg:grid-cols-[0.85fr_1fr]">
+  <Figure
+    fitHeight
+    src={componentFormInputs}
+    alt="数据输入组件，包含自动完成、级联选择、复选框、日期选择器、输入框、表单、评分、开关和穿梭框"
+    caption="数据输入组件覆盖表单高频场景，状态、反馈和布局规则保持统一。"
+  />
+  <Figure
+    fitHeight
+    src={componentOverlays}
+    alt="弹窗与遮罩组件，包含新增联系人弹窗、同行评审弹窗、确认对话框、侧边抽屉和气泡确认框"
+    caption="弹窗与浮层统一遮罩、圆角、按钮间距和二级确认规则，降低复杂流程的理解成本。"
+  />
+</div>
+
+## 页面模板与业务落地
+
+组件不是孤立存在的。我把登录、列表、详情、配置和流程页抽象成可复用模板，再让 RayZ.ALM 的具体业务模块基于这些模板继续扩展。
+
+列表页统一筛选、表格、批量操作和详情切换；流程评审页把输入、控制、活动、使能和输出要素放进同一个视图，让复杂流程更容易跟进。
+
+<div class="not-prose grid items-start gap-6 lg:grid-cols-2">
+  <Figure
+    src={projectManagementTemplate}
+    alt="RayZ.ALM 项目管理页面模板，包含侧边导航、列表筛选、客户操作菜单和联系人详情表格"
+    caption="列表模板统一侧边导航、筛选、批量操作和详情切换，让业务数据维护保持一致。"
+  />
+  <Figure
+    src={reviewWorkflowTemplate}
+    alt="RayZ.ALM 方案论证评审流程模板，展示输入、控制、活动、使能和输出要素"
+    caption="评审模板把复杂流程拆成固定要素，同时保留任务协作和状态推进的入口。"
+  />
+</div>
+
+## 原型与维护
+
+关键流程用 Prototype 验证字段关系、空态、加载态、错误反馈和页面跳转。组件库则通过统一命名、分层组织和更新规则长期维护，避免 Variant 无限制膨胀。
+
+这套系统最终让新页面可以更快从模板开始，也让后续迭代更容易保持一致。
