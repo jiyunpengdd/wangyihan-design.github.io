@@ -2,6 +2,7 @@
 import Hero from '@/components/home/Hero.astro';
 import Services from '@/components/home/Services.astro';
 import Testimonials from '@/components/home/Testimonials.astro';
+import ScrollVelocity from '@/components/ui/ScrollVelocity.astro';
 import Icon from '@/components/ui/Icon.astro';
 import SectionHead from '@/components/ui/SectionHead.astro';
 import ProjectCard from '@/components/work/ProjectCard.astro';
@@ -27,11 +28,12 @@ const selected = projects.toSorted((a, b) => Number(b.data.featured) - Number(a.
     </SectionHead>
     <div class="mt-12 grid gap-x-8 gap-y-16 md:grid-cols-2">
       {selected.map((project, index) => (
-        <ProjectCard project={project} eager={index < 2} />
+        <ProjectCard project={project} eager={index < 2} index={index % 2} />
       ))}
     </div>
   </section>
 
+  <ScrollVelocity words={['Product Design', 'Design System', 'Web', 'App', 'AI Workflow']} />
   <Services />
   <Testimonials />
 </BaseLayout>

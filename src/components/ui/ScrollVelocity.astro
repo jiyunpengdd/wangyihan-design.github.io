@@ -1,0 +1,143 @@
+---
+interface Props {
+  words?: string[];
+}
+
+const { words = [] } = Astro.props;
+---
+
+{words.length > 0 && (
+  <section class="velocity shell mt-28 sm:mt-36" aria-label="专业方向">
+    <div class="velocity-mask">
+      <div class="velocity-track">
+        <div class="velocity-copy">
+          {words.map((word) => (
+            <span class="velocity-item">{word}</span>
+          ))}
+        </div>
+        <div class="velocity-copy" aria-hidden="true">
+          {words.map((word) => (
+            <span class="velocity-item">{word}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .velocity {
+    --velocity-x: 0px;
+  }
+
+  .velocity-mask {
+    overflow: hidden;
+    border-block: 1px solid var(--line);
+    padding-block: 1.15rem;
+  }
+
+  .velocity-track {
+    display: flex;
+    width: max-content;
+    translate: var(--velocity-x) 0;
+    will-change: translate;
+  }
+
+  .velocity-copy {
+    display: flex;
+    flex: none;
+    align-items: center;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(1.35rem, 0.9rem + 1.5vw, 2rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .velocity-item {
+    flex: none;
+  }
+
+  .velocity-item::after {
+    content: '·';
+    margin-inline: 2rem;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .velocity-track {
+      translate: 0;
+      will-change: auto;
+    }
+  }
+</style>
+
+<script>
+  const initScrollVelocity = (section: HTMLElement) => {
+    const track = section.querySelector<HTMLElement>('.velocity-track');
+    const copy = section.querySelector<HTMLElement>('.velocity-copy');
+
+    if (!track || !copy || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let baseOffset = copy.getBoundingClientRect().width;
+    let offset = -baseOffset;
+    let velocity = 0;
+    let lastScrollY = window.scrollY;
+    let lastTime = performance.now();
+    let frameId = 0;
+
+    const loop = (time: number) => {
+      const delta = Math.min(time - lastTime, 64);
+      const scrollDelta = window.scrollY - lastScrollY;
+      const targetVelocity = delta > 0 ? (scrollDelta / delta) * 5 : 0;
+
+      velocity += (targetVelocity - velocity) * 0.12;
+      velocity = Math.max(-8, Math.min(8, velocity));
+      offset += velocity * (delta / 16.7);
+      offset -= Math.sign(offset) * Math.min(0.42 * (delta / 16.7), Math.abs(offset));
+
+      const modulo = ((offset % baseOffset) + baseOffset) % baseOffset;
+      offset = modulo - baseOffset;
+      track.style.setProperty('--velocity-x', `${offset.toFixed(2)}px`);
+
+      lastScrollY = window.scrollY;
+      lastTime = time;
+      frameId = requestAnimationFrame(loop);
+    };
+
+    const stop = () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+
+    document.fonts.ready.then(() => {
+      baseOffset = copy.getBoundingClientRect().width;
+    });
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          lastScrollY = window.scrollY;
+          lastTime = performance.now();
+          if (!frameId) frameId = requestAnimationFrame(loop);
+          return;
+        }
+        stop();
+      },
+      { rootMargin: '20% 0px' },
+    );
+
+    observer.observe(section);
+
+    window.addEventListener('resize', () => {
+      baseOffset = copy.getBoundingClientRect().width;
+    });
+    window.addEventListener('pagehide', () => {
+      observer.disconnect();
+      stop();
+    });
+  };
+
+  document.querySelectorAll<HTMLElement>('.velocity').forEach(initScrollVelocity);
+</script>

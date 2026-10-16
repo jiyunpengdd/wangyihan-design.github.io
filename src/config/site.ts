@@ -7,7 +7,7 @@ export const siteConfig = {
   name: 'Han',
   title: 'Han - 高级 UI/UX 设计师作品集',
   description:
-    'Han 是一位常驻上海的高级 UI/UX 设计师，关注用户思维、服务体验与数字化工具。这里收录了精选作品、案例研究与简历。',
+    'Han 是一位常驻上海的高级 UI/UX 设计师，关注用户需求洞察、跨端产品体验与 AI 辅助设计。这里收录了精选作品、案例研究与简历。',
   siteUrl: 'https://wangyihan-design.github.io',
   language: 'zh-CN',
   locale: 'zh_CN',

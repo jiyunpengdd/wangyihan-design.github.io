@@ -8,13 +8,15 @@ interface Props {
   /** The first cards on a page load eagerly. */
   eager?: boolean;
   headingLevel?: 'h2' | 'h3';
+  /** Used to stagger cards that scroll into view together. */
+  index?: number;
 }
 
-const { project, eager = false, headingLevel: Heading = 'h3' } = Astro.props;
+const { project, eager = false, headingLevel: Heading = 'h3', index = 0 } = Astro.props;
 const { title, client, year, services, cover, coverAlt, tint } = project.data;
 ---
 
-<article class="project-card reveal relative" style={`--tint: ${tint}`}>
+<article class="project-card reveal relative" style={`--tint: ${tint}; --rise-step: ${index + 1}`}>
   <div class="tint-panel relative aspect-5/4 overflow-hidden rounded-card">
     <Image
       src={cover}

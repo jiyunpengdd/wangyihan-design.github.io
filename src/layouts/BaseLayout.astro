@@ -160,7 +160,7 @@ const schema = structuredData ?? websiteSchema();
     {siteConfig.cookieConsent.enabled && <CookieConsent />}
     <script is:inline>
       (() => {
-        const animatedItems = document.querySelectorAll('.rise, .reveal');
+        const animatedItems = document.querySelectorAll('.rise, .reveal, .scroll-expand');
 
         if (!('IntersectionObserver' in window)) {
           animatedItems.forEach((item) => item.classList.add('in-view'));
