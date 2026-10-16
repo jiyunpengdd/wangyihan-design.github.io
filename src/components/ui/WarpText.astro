@@ -70,6 +70,21 @@ const options = {
     transition: opacity 550ms var(--ease-out-expo);
   }
 
+  /* With JS, keep the HTML rasterization hidden until WebGL is unavailable. */
+  :global(html.js) .warp-heading:not(.is-ready):not(.is-fallback) .warp-heading__fallback {
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    transition: none;
+  }
+
+  .warp-heading.is-fallback .warp-heading__fallback {
+    opacity: 1;
+    pointer-events: auto;
+    user-select: auto;
+    transition: none;
+  }
+
   .warp-heading :global(canvas) {
     position: absolute;
     inset: 0;
@@ -552,6 +567,8 @@ const options = {
       gl = renderer.gl;
     } catch (error) {
       console.warn('WarpText: WebGL could not be initialized.', error);
+      heading.classList.add('is-fallback');
+      heading.dataset.warpState = 'fallback';
       return () => {};
     }
 
@@ -597,6 +614,12 @@ const options = {
       if (!disposed && !contextLost && renderer && mesh) renderer.render({ scene: mesh });
     };
 
+    const showFallback = () => {
+      heading.classList.remove('is-ready');
+      heading.classList.add('is-fallback');
+      heading.dataset.warpState = 'fallback';
+    };
+
     const rasterize = async () => {
       const version = ++rasterVersion;
       try {
@@ -609,16 +632,22 @@ const options = {
       const rect = heading.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0 || !gl || !texture) return;
 
-      texture.image = buildTextCanvas(heading, rect.width, rect.height, Math.min(window.devicePixelRatio || 1, 2));
-      texture.needsUpdate = true;
-      renderOnce();
-      requestAnimationFrame(() => {
+      try {
+        texture.image = buildTextCanvas(heading, rect.width, rect.height, Math.min(window.devicePixelRatio || 1, 2));
+        texture.needsUpdate = true;
+        renderOnce();
         requestAnimationFrame(() => {
-          if (disposed || contextLost || version !== rasterVersion) return;
-          heading.classList.add('is-ready');
-          heading.dataset.warpState = 'ready';
+          requestAnimationFrame(() => {
+            if (disposed || contextLost || version !== rasterVersion) return;
+            heading.classList.remove('is-fallback');
+            heading.classList.add('is-ready');
+            heading.dataset.warpState = 'ready';
+          });
         });
-      });
+      } catch (error) {
+        console.warn('WarpText: Text could not be rasterized.', error);
+        showFallback();
+      }
     };
 
     const resize = () => {
@@ -781,7 +810,14 @@ const options = {
   const initializeAll = () => {
     document.querySelectorAll<HTMLElement>('[data-warp-heading]').forEach((heading) => {
       if (cleanups.has(heading) || heading.dataset.warpState === 'ready') return;
-      cleanups.set(heading, initializeHeading(heading));
+      try {
+        cleanups.set(heading, initializeHeading(heading));
+      } catch (error) {
+        console.warn('WarpText: Heading could not be initialized.', error);
+        heading.classList.add('is-fallback');
+        heading.dataset.warpState = 'fallback';
+        cleanups.set(heading, () => {});
+      }
     });
   };
 
