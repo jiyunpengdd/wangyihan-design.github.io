@@ -40,7 +40,10 @@ import WarpText from '@/components/ui/WarpText.astro';
     </div>
 
     <dl
-      class="rise grid grid-cols-3 gap-6 border-t border-line pt-6 sm:gap-10 lg:border-t-0 lg:pt-0"
+      class:list={[
+        'rise grid gap-6 border-t border-line pt-6 sm:gap-10 lg:border-t-0 lg:pt-0',
+        hero.facts.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+      ]}
       style="--rise-step: 3"
     >
       {hero.facts.map((fact) => (

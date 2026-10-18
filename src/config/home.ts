@@ -6,8 +6,7 @@ export const hero = {
   secondary: { label: '关于我', href: '/about/' },
   facts: [
     { value: '10+', label: '年 UI&UX 设计经验' },
-    { value: '40+', label: '个已上线产品' },
-    { value: '12', label: '套设计系统' },
+    { value: '20+', label: '个已上线产品' },
   ],
 };
 
