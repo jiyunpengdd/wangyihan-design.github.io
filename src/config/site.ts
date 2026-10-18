@@ -39,7 +39,7 @@ export const siteConfig = {
     enabled: true,
   },
 
-  socials: [{ label: 'GitHub', href: 'https://github.com/byunghun-jake' }] satisfies NavLink[],
+  socials: [{ label: 'GitHub', href: 'https://github.com/wangyihan-design' }] satisfies NavLink[],
 };
 
 export const navigation: NavLink[] = [
