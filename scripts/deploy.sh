@@ -18,9 +18,12 @@ rsync -az --delete -e "ssh -i $KEY -o BatchMode=yes" dist/ "$HOST:$TARGET/"
 echo "==> 修正文件归属"
 ssh -i "$KEY" -o BatchMode=yes "$HOST" "chown -R www-data:www-data $TARGET"
 
-echo "==> 验证"
-code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://han-design.top/ || true)
-echo "https://han-design.top/ -> ${code:-连接失败}"
+echo "==> 验证（在服务器上跑，本机网络不可靠）"
+SITE_URL="${DEPLOY_URL:-https://han-design.top}"
+SITE_HOST="${SITE_URL#https://}"
+code=$(ssh -i "$KEY" -o BatchMode=yes "$HOST" \
+  "curl -s -o /dev/null -w '%{http_code}' --resolve ${SITE_HOST}:443:127.0.0.1 ${SITE_URL}/" || true)
+echo "${SITE_URL}/ -> ${code:-连接失败}"
 if [ "${code:-}" != "200" ]; then
   echo "注意：首页没有返回 200，去服务器上看 tail /var/log/nginx/error.log"
 fi
