@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import MotionCover from '@/components/motion/MotionCover.astro';
 import Icon from '@/components/ui/Icon.astro';
 import { projectHref, type Project } from '@/lib/work';
 
@@ -13,20 +14,26 @@ interface Props {
 }
 
 const { project, eager = false, headingLevel: Heading = 'h3', index = 0 } = Astro.props;
-const { title, client, year, services, cover, coverAlt, tint } = project.data;
+const { title, client, year, services, cover, coverAlt, coverMotion, tint } = project.data;
 ---
 
 <article class="project-card reveal relative" style={`--tint: ${tint}; --rise-step: ${index + 1}`}>
   <div class="tint-panel relative aspect-5/4 overflow-hidden rounded-card">
-    <Image
-      src={cover}
-      alt={coverAlt}
-      widths={[640, 960, 1280, 1600, 1920]}
-      sizes="(min-width: 80rem) 44rem, (min-width: 48rem) 55vw, 110vw"
-      quality={90}
-      loading={eager ? 'eager' : 'lazy'}
-      class="project-shot shot absolute top-[12%] left-[8%] w-[115%] max-w-none"
-    />
+    {coverMotion ? (
+      <MotionCover variant="card" class="absolute inset-0" />
+    ) : (
+      cover && (
+        <Image
+          src={cover}
+          alt={coverAlt}
+          widths={[640, 960, 1280, 1600, 1920]}
+          sizes="(min-width: 80rem) 44rem, (min-width: 48rem) 55vw, 110vw"
+          quality={90}
+          loading={eager ? 'eager' : 'lazy'}
+          class="project-shot shot absolute top-[12%] left-[8%] w-[115%] max-w-none"
+        />
+      )
+    )}
     <span
       class="project-badge absolute top-5 right-5 grid size-11 place-items-center rounded-full bg-inverse text-on-inverse"
       aria-hidden="true"

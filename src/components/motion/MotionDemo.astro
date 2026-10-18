@@ -1,0 +1,809 @@
+---
+interface Props {
+  variant: 'duration' | 'easing' | 'press' | 'toggle' | 'stagger' | 'drag' | 'morph' | 'skeleton' | 'reduced';
+  label: string;
+  caption?: string;
+}
+
+const { variant, label, caption } = Astro.props;
+
+const staggerItems = ['品牌色', '字号阶梯', '圆角', '投影', '图标', '动效'];
+---
+
+<figure class="motion-demo not-prose" data-demo={variant}>
+  <div class="demo-stage">
+    {variant === 'duration' && (
+      <div class="dur">
+        <div class="dur-track">
+          <span class="dur-dot" data-travel />
+        </div>
+        <div class="demo-row">
+          <input type="range" min="100" max="800" step="20" value="240" aria-label="动画时长" data-dur-range />
+          <output data-dur-out>240ms</output>
+        </div>
+      </div>
+    )}
+
+    {variant === 'easing' && (
+      <div class="ease">
+        {[
+          { name: 'linear', curve: 'linear' },
+          { name: 'ease-out', curve: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+          { name: 'spring', curve: 'cubic-bezier(0.34, 1.56, 0.64, 1)' },
+        ].map((lane) => (
+          <div class="ease-lane">
+            <span class="ease-name">{lane.name}</span>
+            <div class="ease-track">
+              <span class="ease-box" data-travel style={`--e: ${lane.curve}`} />
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {variant === 'press' && (
+      <div class="press">
+        <button type="button" class="press-btn" data-press>
+          提交订单
+        </button>
+        <p class="demo-hint">按一下：悬停、按下、松手回弹，三层反馈都在 200ms 内</p>
+      </div>
+    )}
+
+    {variant === 'toggle' && (
+      <div class="switches">
+        <div class="switch-item">
+          <button type="button" role="switch" aria-checked="true" class="sw is-linear" data-switch>
+            <span class="sw-knob" />
+            <span class="sr-only">线性开关</span>
+          </button>
+          <span class="switch-tag">linear 160ms</span>
+        </div>
+        <div class="switch-item">
+          <button type="button" role="switch" aria-checked="true" class="sw is-spring" data-switch>
+            <span class="sw-knob" />
+            <span class="sr-only">弹簧开关</span>
+          </button>
+          <span class="switch-tag">spring 420ms</span>
+        </div>
+      </div>
+    )}
+
+    {variant === 'stagger' && (
+      <div class="stagger">
+        <ul class="stagger-list" data-stagger-list>
+          {staggerItems.map((item, i) => (
+            <li style={`--i: ${i}`}>
+              <span class="stagger-dot" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <div class="demo-row">
+          <input type="range" min="0" max="140" step="10" value="50" aria-label="错开延迟" data-stagger-range />
+          <output data-stagger-out>50ms</output>
+          <button type="button" class="demo-btn" data-stagger-replay>
+            重播
+          </button>
+        </div>
+      </div>
+    )}
+
+    {variant === 'drag' && (
+      <div class="drag" data-drag-zone>
+        <div class="drag-ghost" aria-hidden="true" />
+        <div class="drag-card" data-drag-card>
+          <span class="drag-thumb" />
+          <span class="drag-lines">
+            <span />
+            <span />
+          </span>
+        </div>
+        <p class="demo-hint">按住往右拖，松手看它回弹到原位</p>
+      </div>
+    )}
+
+    {variant === 'morph' && (
+      <div class="morph" data-morph-stage>
+        <button type="button" class="morph-card" data-morph-card>
+          <span class="morph-thumb" />
+          <span class="morph-copy">
+            <span class="morph-title">设计规范</span>
+            <span class="morph-sub">点开看转场</span>
+          </span>
+        </button>
+        <div class="morph-detail" data-morph-detail hidden>
+          <span class="morph-thumb is-large" />
+          <p class="morph-title">设计规范</p>
+          <p class="morph-sub">同一个元素从卡片的位置长成整页，位置、尺寸、圆角一起变。</p>
+          <button type="button" class="demo-btn" data-morph-close>
+            返回
+          </button>
+        </div>
+      </div>
+    )}
+
+    {variant === 'skeleton' && (
+      <div class="skel" data-skel>
+        <div class="skel-body">
+          <div class="skel-avatar" />
+          <div class="skel-lines">
+            <span />
+            <span />
+          </div>
+        </div>
+        <div class="skel-real" aria-hidden="true">
+          <div class="skel-avatar is-real" />
+          <div class="skel-lines">
+            <span>润发象 · 角色设定</span>
+            <span>更新于 3 分钟前</span>
+          </div>
+        </div>
+        <button type="button" class="demo-btn" data-skel-toggle>
+          切换状态
+        </button>
+      </div>
+    )}
+
+    {variant === 'reduced' && (
+      <div class="rm">
+        <label class="rm-switch">
+          <input type="checkbox" data-rm />
+          <span>模拟「减少动态」</span>
+        </label>
+        <div class="rm-stage" data-rm-stage>
+          <div class="rm-panel">
+            <span class="rm-bar" />
+            <span class="rm-bar is-short" />
+            <span class="rm-bar" />
+          </div>
+        </div>
+        <button type="button" class="demo-btn" data-rm-replay>
+          重播
+        </button>
+      </div>
+    )}
+  </div>
+
+  <figcaption class="demo-foot">
+    <span class="demo-label">{label}</span>
+    {caption && <span class="demo-caption">{caption}</span>}
+  </figcaption>
+</figure>
+
+<script>
+  import { initMotionDemos } from '@/scripts/motion-demos';
+
+  initMotionDemos();
+</script>
+
+<style>
+  .motion-demo {
+    margin-block: 2.5em;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .demo-stage {
+    display: grid;
+    place-items: center;
+    min-height: 15rem;
+    padding: 2.5rem 1.5rem;
+    background:
+      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--line) 70%, transparent) 1px, transparent 0) 0 0 /
+        22px 22px,
+      var(--sunken);
+  }
+
+  .demo-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    padding: 0.9rem 1.25rem 1rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .demo-label {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .demo-caption {
+    color: var(--muted);
+  }
+
+  .demo-hint {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .demo-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 1.25rem;
+  }
+
+  .demo-row input[type='range'] {
+    flex: 1;
+    accent-color: var(--accent);
+  }
+
+  .demo-row output {
+    min-width: 4.5rem;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-align: right;
+  }
+
+  .demo-btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: border-color 160ms ease;
+  }
+
+  .demo-btn:hover {
+    border-color: var(--ink);
+  }
+
+  /* duration */
+  .dur {
+    width: min(100%, 34rem);
+  }
+
+  .dur-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+  }
+
+  .dur-track::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  .dur-dot {
+    position: absolute;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: dur-run var(--dur, 240ms) var(--ease-out-expo) infinite alternate;
+  }
+
+  @keyframes dur-run {
+    to {
+      translate: var(--travel, 200px) 0;
+    }
+  }
+
+  /* easing */
+  .ease {
+    display: grid;
+    gap: 1.5rem;
+    width: min(100%, 34rem);
+  }
+
+  .ease-lane {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .ease-name {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+  }
+
+  .ease-track {
+    position: relative;
+    height: 22px;
+  }
+
+  .ease-track::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: 2px;
+    background: var(--line);
+  }
+
+  .ease-box {
+    position: absolute;
+    left: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    background: var(--ink);
+    animation: ease-run 2400ms var(--e) infinite;
+  }
+
+  @keyframes ease-run {
+    0% {
+      translate: 0 0;
+    }
+
+    40% {
+      translate: var(--travel, 200px) 0;
+    }
+
+    52% {
+      translate: var(--travel, 200px) 0;
+    }
+
+    92%,
+    100% {
+      translate: 0 0;
+    }
+  }
+
+  /* press */
+  .press {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+  }
+
+  .press-btn {
+    position: relative;
+    overflow: hidden;
+    padding: 0.9rem 1.9rem;
+    border-radius: 999px;
+    background: var(--inverse);
+    color: var(--on-inverse);
+    font-size: 1rem;
+    font-weight: 600;
+    transition:
+      background-color 160ms ease,
+      transform 180ms var(--ease-out-expo),
+      box-shadow 220ms var(--ease-out-expo);
+  }
+
+  .press-btn:hover {
+    background: color-mix(in oklab, var(--inverse) 84%, var(--canvas));
+    box-shadow: 0 10px 24px -12px rgb(18 18 17 / 0.5);
+  }
+
+  .press-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* toggle */
+  .switches {
+    display: flex;
+    gap: 3rem;
+  }
+
+  .switch-item {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+  }
+
+  .sw {
+    position: relative;
+    width: 64px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--line-strong);
+    transition: background-color 160ms ease;
+  }
+
+  .sw[aria-checked='true'] {
+    background: var(--accent);
+  }
+
+  .sw-knob {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(18 18 17 / 0.25);
+  }
+
+  .sw[aria-checked='true'] .sw-knob {
+    translate: 28px 0;
+  }
+
+  .is-linear .sw-knob {
+    transition: translate 160ms linear;
+  }
+
+  .is-spring .sw-knob {
+    transition: translate 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .switch-tag {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  /* stagger */
+  .stagger {
+    width: min(100%, 26rem);
+  }
+
+  .stagger-list {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .stagger-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 0.7rem;
+    background: var(--surface);
+    color: var(--body);
+    font-size: 0.9rem;
+    opacity: 0;
+    translate: 0 10px;
+    transition:
+      opacity 380ms var(--ease-out-expo),
+      translate 380ms var(--ease-out-expo);
+    transition-delay: calc(var(--i) * var(--stagger, 50ms));
+  }
+
+  .stagger-list.is-in li {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .stagger-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* drag */
+  .drag {
+    position: relative;
+    display: grid;
+    place-items: center;
+    gap: 1.75rem;
+    width: 100%;
+    padding-block: 0.5rem;
+    touch-action: pan-y;
+  }
+
+  .drag-ghost {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 244px;
+    height: 88px;
+    translate: -50% -50%;
+    border: 1px dashed color-mix(in oklab, var(--ink) 20%, transparent);
+    border-radius: 24px;
+  }
+
+  .drag-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    width: 220px;
+    height: 64px;
+    padding-inline: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    cursor: grab;
+    user-select: none;
+    will-change: translate;
+  }
+
+  .drag-card:active {
+    cursor: grabbing;
+  }
+
+  .drag-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--accent);
+  }
+
+  .drag-lines {
+    display: grid;
+    gap: 0.35rem;
+    flex: 1;
+  }
+
+  .drag-lines span {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+
+  .drag-lines span:last-child {
+    width: 60%;
+  }
+
+  /* morph */
+  .morph {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: min(100%, 26rem);
+    min-height: 13rem;
+  }
+
+  .morph-card,
+  .morph-detail {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    text-align: left;
+  }
+
+  .morph-card {
+    cursor: pointer;
+    transition: box-shadow 200ms ease;
+  }
+
+  .morph-card:hover {
+    box-shadow: var(--shadow-card);
+  }
+
+  .morph-detail {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .morph-thumb {
+    flex: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(140deg, var(--accent), color-mix(in oklab, var(--accent) 30%, var(--surface)));
+  }
+
+  .morph-thumb.is-large {
+    width: 100%;
+    height: 7rem;
+    border-radius: 16px;
+  }
+
+  .morph-copy {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .morph-title {
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .morph-sub {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  /* skeleton */
+  .skel {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+    width: min(100%, 24rem);
+  }
+
+  .skel-body,
+  .skel-real {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .skel-real {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms ease;
+  }
+
+  .skel-body {
+    transition: opacity 240ms ease;
+  }
+
+  .skel {
+    position: relative;
+  }
+
+  .skel-avatar {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--line);
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--surface) 70%, transparent) 45%,
+      transparent 70%
+    );
+    background-size: 220% 100%;
+    animation: shimmer 1500ms linear infinite;
+  }
+
+  .skel-avatar.is-real {
+    background: var(--accent);
+    animation: none;
+  }
+
+  .skel-lines {
+    display: grid;
+    gap: 0.5rem;
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--body);
+  }
+
+  .skel-lines span {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--line);
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--surface) 70%, transparent) 45%,
+      transparent 70%
+    );
+    background-size: 220% 100%;
+    animation: shimmer 1500ms linear infinite;
+  }
+
+  .skel-lines span:last-child {
+    width: 62%;
+  }
+
+  .skel.is-loaded .skel-body {
+    opacity: 0;
+  }
+
+  .skel.is-loaded .skel-real {
+    opacity: 1;
+  }
+
+  .skel-real .skel-lines span {
+    height: auto;
+    background: none;
+    animation: none;
+    border-radius: 0;
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position: -220% 0;
+    }
+  }
+
+  /* reduced motion */
+  .rm {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+    width: min(100%, 26rem);
+  }
+
+  .rm-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .rm-switch input {
+    accent-color: var(--accent);
+  }
+
+  .rm-stage {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 8rem;
+    border: 1px dashed var(--line-strong);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .rm-panel {
+    display: grid;
+    gap: 0.5rem;
+    width: 60%;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    opacity: 0;
+    translate: 0 28px;
+    scale: 0.94;
+    transition:
+      opacity 500ms var(--ease-out-expo),
+      translate 500ms var(--ease-out-expo),
+      scale 500ms var(--ease-out-expo);
+  }
+
+  .rm-panel.is-in {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+
+  .rm-stage.is-reduced .rm-panel {
+    translate: 0 0;
+    scale: 1;
+    transition: opacity 500ms linear;
+  }
+
+  .rm-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+
+  .rm-bar.is-short {
+    width: 55%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dur-dot,
+    .ease-box,
+    .skel-avatar,
+    .skel-lines span {
+      animation: none;
+    }
+
+    .stagger-list li {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+</style>

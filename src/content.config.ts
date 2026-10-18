@@ -7,15 +7,22 @@ const work = defineCollection({
   schema: ({ image }) =>
     z.object({
       title: z.string(),
+      /** Overrides the `<title>` tag. Defaults to "<client> 案例研究". */
+      pageTitle: z.string().optional(),
       client: z.string(),
+      /** Label for the client row in the case header. */
+      clientLabel: z.string().default('客户'),
       summary: z.string(),
       year: z.number().int(),
       role: z.string(),
       services: z.array(z.string()).default([]),
       duration: z.string().optional(),
       team: z.string().optional(),
-      cover: image(),
-      coverAlt: z.string(),
+      /** Omit when the cover is drawn in code (`coverMotion`). */
+      cover: image().optional(),
+      coverAlt: z.string().default(''),
+      /** Draw the cover as a live canvas animation instead of an image. */
+      coverMotion: z.boolean().default(false),
       tint: z
         .string()
         .regex(/^#[0-9a-fA-F]{6}$/)

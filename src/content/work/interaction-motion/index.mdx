@@ -1,0 +1,155 @@
+---
+title: 动效不是装饰，是回答
+pageTitle: 交互动效的用法与实现
+client: 交互动效研究
+clientLabel: 类型
+summary: 把交互动效拆成九个可复用的动作：时长、缓动、反馈、状态、序列、跟手、转场、等待、克制。每个都配一段能直接跑的代码。
+year: 2026
+role: 研究与实现
+services: [交互动效, 动效规范, 代码实现]
+tint: '#e9e7f2'
+order: 4
+featured: false
+coverMotion: true
+---
+
+import MotionDemo from '@/components/motion/MotionDemo.astro';
+
+大部分动效需求长这样：「这里加个动效吧，显得高级一点。」
+
+这句话没法执行。它没说加在哪、多快、什么曲线、什么时候不该出现。
+
+换一种问法就有答案了：这个动效在回答什么问题。用户其实一直在问三件事。我刚点的那个东西点上了吗。现在是什么状态。我接下来会去哪。前两个问题靠反馈和状态回答，第三个靠空间。剩下的时长、缓动、节奏，是这三类动效的语法，不是风格。
+
+下面的 demo 都是代码画的，可以点、可以拖、可以调参数。每个小节只讲一件事。
+
+## 时长：200ms 是个经验值，但它有前提
+
+<MotionDemo variant="duration" label="拖一下滑块" caption="同一个位移，从 100ms 到 800ms。" />
+
+100ms 以下，用户基本看不到过程，只觉得东西「出现」了。200 到 300ms 是大多数界面动效的舒适区，能感知到发生，又不觉得在等。400ms 往上开始像卡顿，除非你在表达重量，比如抽屉从屏幕底部抬起来。
+
+但这三个数字离开距离就没意义。移动 8px 和移动 400px 用同一个时长，前者像瞬移，后者像被人拽住。比较稳的做法是按距离分档：短距离 120 到 160ms，中等距离 200 到 240ms，整屏 300 到 400ms。
+
+还有一个变量是频率。每天点一百次的操作，比如切 tab、拨开关，动效要短到几乎看不见，因为第一百次的时候它只是在拖慢你。一天用一次的操作，比如提交订单、支付成功，可以慢一点，慢本身就是确认。
+
+## 缓动：linear 是错的，除非你在做匀速运动
+
+<MotionDemo variant="easing" label="三条轨道，同样的距离和时间" caption="只有曲线不同。" />
+
+linear 看起来机械，因为现实里没有东西是瞬间启动、瞬间停止的。它唯一合理的场景是匀速运动：进度条、加载条、时钟指针。
+
+ease-out 适合进入。快启动，慢收尾。用户需要马上看到结果，收尾慢是为了让他看清东西停在哪。这个站点用的是 `cubic-bezier(0.16, 1, 0.3, 1)`，起步极快，最后 30% 走得很慢。
+
+ease-in 适合离开。慢启动，快速消失。离开的东西不需要被看清，只需要让人知道它走了。
+
+spring 不是曲线，是模拟。给它质量、刚度、阻尼，它自己算出轨迹。拖拽、回弹、开关这类物理动作应该用它，因为用户会拿现实世界的经验去预期它。
+
+弹簧不需要库，六行就够：
+
+```js
+function spring(t, damping = 6.4, freq = 12) {
+  return 1 - Math.exp(-damping * t) * Math.cos(freq * t);
+}
+```
+
+t 是 0 到 1 的进度，返回值会略微冲过 1 再回来。冲过头那一下，就是「弹性」。
+
+## 反馈：按下必须有回应
+
+<MotionDemo variant="press" label="按一下那个按钮" caption="悬停、按下、回弹，三层加起来不超过 200ms。" />
+
+三层反馈叠在一起：悬停时背景变深，说明可点；按下时缩到 0.96，说明已经吃到这一下；松手时带一点回弹，说明动作已触发。
+
+触摸屏没有悬停，所以按下这一层必须自己成立。很多人只做位移，在低端安卓掉帧的时候位移会先丢，用户就不知道到底点没点上。颜色和透明度更便宜，也更稳。位移当加分项，别当唯一信号。
+
+## 状态：开关是最小的状态机
+
+<MotionDemo variant="toggle" label="点两个开关对比" caption="左：linear 160ms。右：spring 420ms。" />
+
+开关看着简单，其实要交代三件事：当前值、切换中、切换完成。线性动画会把这三件事糊成一件，看起来发黏。弹簧会先冲过去再稳住，正好对应手指松开那一刻。
+
+实现上有两个细节。用 `translate` 而不是 `left`，前者不触发 layout。位移距离要跟轨道宽度成比例，轨道变宽了滑块还只走 28px，就会贴在左边。
+
+## 序列：一起出现等于没出现
+
+<MotionDemo variant="stagger" label="调一下错开延迟" caption="0ms 和 50ms 的区别，比想象中大。" />
+
+六个条目同时出现，用户只能看到「一大片东西」。错开 40 到 60ms，眼睛能跟上第一项，也就知道后面还有五项。
+
+但错开是有上限的。八项以后不要再全错开，延迟会累积到半秒以上，后面几项看起来像卡住了。稳妥的做法是总延迟不超过 400ms，超出的部分归零。
+
+```css
+.stagger li {
+  transition-delay: calc(var(--i) * var(--stagger, 50ms));
+}
+```
+
+## 跟手：拖拽要跟得住、放得下
+
+<MotionDemo variant="drag" label="按住往右拖" caption="松手看它怎么回到原位。" />
+
+跟手的第一原则是零延迟。手指按下的那一刻，物体必须已经在动，中间不能有任何 easing，否则手指和物体之间会拉开一段距离，手感立刻就假了。
+
+松手要有去处。回原位、吸附到格子、或者顺着速度继续飞出去，三种都行。最糟的是没有去处：手一松，东西停在半路，用户不知道它算不算放下了。
+
+回弹用弹簧，不要用 CSS transition。transition 的时长是固定的，而弹簧的收尾长度取决于松手时的速度，快甩和慢放不该一样长。
+
+## 空间：转场要交代从哪来
+
+<MotionDemo variant="morph" label="点开那张卡片" caption="位置、尺寸、圆角一起变，再点返回。" />
+
+新内容从卡片的位置长出来。用户看到的是「这张卡片变大了」，不是一个新页面盖上来，所以他知道返回的时候会缩回哪。
+
+这套做法叫 FLIP：先量旧位置（First），改 DOM，再量新位置（Last），用 transform 把新元素倒推回旧位置（Invert），最后过渡到零（Play）。四步，不依赖动画库：
+
+```js
+const first = card.getBoundingClientRect();
+card.hidden = true;
+detail.hidden = false;
+const last = detail.getBoundingClientRect();
+
+const dx = first.left - last.left;
+const dy = first.top - last.top;
+const sx = first.width / last.width;
+const sy = first.height / last.height;
+
+detail.style.transformOrigin = 'top left';
+detail.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` }, { transform: 'none' }], {
+  duration: 460,
+  easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+});
+```
+
+代价是中间几帧文字会被拉伸。内容差异大的时候，用交叉淡入遮一下，或者只 morph 容器不 morph 内容。
+
+## 等待：加载也要有形状
+
+<MotionDemo variant="skeleton" label="点「切换状态」" caption="骨架屏说明等的是什么，转圈只说明在等。" />
+
+转圈只说明「在等」，骨架屏说明「等的是什么」。能预测布局的地方用骨架，不能预测的用进度条。
+
+骨架的闪烁周期放在 1.2 到 1.6 秒，太快像故障。还有一条容易被忽略：加载超过 1 秒才显示 loading，否则会出现闪一下的白块，比不显示还糟。
+
+## 克制：减少动态不是关掉动效
+
+<MotionDemo variant="reduced" label="勾上「模拟减少动态」再重播" caption="位移和缩放被去掉，透明度还在。" />
+
+这是 `prefers-reduced-motion` 的正确用法。它不是「不要动效」，是「不要大幅位移、缩放、视差」。前庭功能障碍的人会因为这些东西头晕、恶心，但淡入淡出通常没问题。
+
+实现上把位移和缩放收进 media query，只留 opacity，比整个关掉体验好得多。
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    translate: none;
+    scale: none;
+  }
+}
+```
+
+## 收尾
+
+写动效之前先回答一个问题：它在回答用户的哪个问题。
+
+答不上来就删掉。答得上来，再按时长、缓动、距离、频率四件事定参数，最后才轮到风格。顺序反了，就会得到一堆「显得高级」但没人需要的动画。

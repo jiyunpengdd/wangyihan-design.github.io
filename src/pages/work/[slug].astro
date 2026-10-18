@@ -2,10 +2,12 @@
 import { getImage, Image } from 'astro:assets';
 import { render } from 'astro:content';
 import { mdxComponents } from '@/components/mdx';
+import MotionCover from '@/components/motion/MotionCover.astro';
 import Icon from '@/components/ui/Icon.astro';
 import NextProject from '@/components/work/NextProject.astro';
 import WarpText from '@/components/ui/WarpText.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { siteConfig } from '@/config/site';
 import { caseStudySchema } from '@/lib/schema';
 import { getProjects, type Project } from '@/lib/work';
 
@@ -23,12 +25,30 @@ interface Props {
 }
 
 const { project, next } = Astro.props;
-const { title, client, summary, year, role, services, duration, team, cover, coverAlt, tint, url } = project.data;
+const {
+  title,
+  pageTitle,
+  client,
+  clientLabel,
+  summary,
+  year,
+  role,
+  services,
+  duration,
+  team,
+  cover,
+  coverAlt,
+  coverMotion,
+  tint,
+  url,
+} = project.data;
 const { Content } = await render(project);
-const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', position: 'top', format: 'png' });
+const share = cover
+  ? await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', position: 'top', format: 'png' })
+  : undefined;
 
 const meta = [
-  { label: '客户', value: client },
+  { label: clientLabel, value: client },
   { label: '年份', value: String(year) },
   { label: '角色', value: role },
   duration && { label: '周期', value: duration },
@@ -37,12 +57,12 @@ const meta = [
 ---
 
 <BaseLayout
-  title={`${client} 案例研究`}
+  title={pageTitle ?? `${client} 案例研究`}
   description={summary}
   image={cover}
   imageAlt={coverAlt}
   type="article"
-  structuredData={caseStudySchema(project, share.src)}
+  structuredData={caseStudySchema(project, share?.src ?? siteConfig.socialImage)}
 >
   <article style={`--tint: ${tint}`}>
     <header class="shell pt-12 sm:pt-16">
@@ -94,16 +114,22 @@ const meta = [
 
     <div class="shell mt-12 sm:mt-16">
       <div class="scroll-expand tint-panel overflow-hidden rounded-card p-[4%] sm:p-[6%]">
-        <Image
-          src={cover}
-          alt={coverAlt}
-          widths={[800, 1200, 1600, 2400, 3200]}
-          sizes="(min-width: 80rem) 68rem, 90vw"
-          quality={90}
-          loading="eager"
-          fetchpriority="high"
-          class="shot w-full"
-        />
+        {coverMotion ? (
+          <MotionCover variant="hero" class="shot overflow-hidden" />
+        ) : (
+          cover && (
+            <Image
+              src={cover}
+              alt={coverAlt}
+              widths={[800, 1200, 1600, 2400, 3200]}
+              sizes="(min-width: 80rem) 68rem, 90vw"
+              quality={90}
+              loading="eager"
+              fetchpriority="high"
+              class="shot w-full"
+            />
+          )
+        )}
       </div>
     </div>
 

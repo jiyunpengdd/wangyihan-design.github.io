@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import MotionCover from '@/components/motion/MotionCover.astro';
 import Icon from '@/components/ui/Icon.astro';
 import { projectHref, type Project } from '@/lib/work';
 
@@ -8,7 +9,7 @@ interface Props {
 }
 
 const { project } = Astro.props;
-const { client, title, cover, tint } = project.data;
+const { client, title, cover, coverMotion, tint } = project.data;
 ---
 
 <aside class="shell mt-24 sm:mt-32" aria-labelledby="next-project">
@@ -31,14 +32,20 @@ const { client, title, cover, tint } = project.data;
       </div>
     </div>
     <div class="tint-panel relative min-h-64 overflow-hidden" style={`--tint: ${tint}`}>
-      <Image
-        src={cover}
-        alt=""
-        widths={[640, 960, 1280, 1600]}
-        sizes="(min-width: 80rem) 50rem, (min-width: 48rem) 65vw, 130vw"
-        quality={90}
-        class="next-shot shot absolute top-[14%] left-[10%] w-[130%] max-w-none"
-      />
+      {coverMotion ? (
+        <MotionCover variant="card" class="absolute inset-0" />
+      ) : (
+        cover && (
+          <Image
+            src={cover}
+            alt=""
+            widths={[640, 960, 1280, 1600]}
+            sizes="(min-width: 80rem) 50rem, (min-width: 48rem) 65vw, 130vw"
+            quality={90}
+            class="next-shot shot absolute top-[14%] left-[10%] w-[130%] max-w-none"
+          />
+        )
+      )}
     </div>
   </div>
 </aside>

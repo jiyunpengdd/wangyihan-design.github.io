@@ -1,0 +1,38 @@
+---
+interface Props {
+  /** `hero` keeps the 16:10 stage, `card` fills whatever box it is dropped into. */
+  variant?: 'hero' | 'card';
+  class?: string;
+}
+
+const { variant = 'hero', class: className } = Astro.props;
+---
+
+<div class:list={['motion-cover', `is-${variant}`, className]} data-motion-cover aria-hidden="true">
+  <canvas></canvas>
+</div>
+
+<script>
+  import { initMotionCovers } from '@/scripts/motion-cover';
+
+  initMotionCovers();
+</script>
+
+<style>
+  .motion-cover {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .motion-cover.is-hero {
+    aspect-ratio: 16 / 10;
+  }
+
+  .motion-cover canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

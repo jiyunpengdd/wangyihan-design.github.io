@@ -16,7 +16,7 @@ export const work = {
   title: '案例研究',
   text: '几个以“清晰”为核心使命的项目：流程繁杂、风险很高，而使用者需要产品低调顺滑、不添乱。',
   /** How many featured case studies the homepage shows. */
-  limit: 4,
+  limit: 5,
 };
 
 export const services = {

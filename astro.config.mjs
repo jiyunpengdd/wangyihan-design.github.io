@@ -20,6 +20,11 @@ export default defineConfig({
     layout: 'constrained',
     responsiveStyles: true,
   },
+  markdown: {
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
   },
