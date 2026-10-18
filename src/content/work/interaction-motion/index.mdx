@@ -116,12 +116,14 @@ const sy = first.height / last.height;
 
 detail.style.transformOrigin = 'top left';
 detail.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` }, { transform: 'none' }], {
-  duration: 460,
-  easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+  duration: 520,
+  easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
 });
 ```
 
-代价是中间几帧文字会被拉伸。内容差异大的时候，用交叉淡入遮一下，或者只 morph 容器不 morph 内容。
+缓动这里有个坑。位移用 `0.16, 1, 0.3, 1` 那种快起慢收的曲线很好看，但拿去做尺寸变形，前 100ms 就冲到 95%，看起来像闪了一下，不是长出来。容器放大要用更平的曲线，上面这条 `0.32, 0.72, 0, 1` 前半段慢，后半段收得干净。
+
+代价是中间几帧文字会被拉伸。所以 demo 里我只 morph 那个缩略图，文字用淡入淡出交接：一个纯色块被拉长看不出来，一段文字被拉长一眼就假了。内容差异大的时候也是同一个道理，要么只 morph 容器，要么在过渡中间把内容换掉。
 
 ## 等待：加载也要有形状
 

@@ -91,20 +91,35 @@ function setupStagger(root: HTMLElement) {
 
   const apply = () => {
     const value = Number(range?.value ?? 50);
-    list.style.setProperty('--stagger', `${value}ms`);
     if (out) out.textContent = `${value}ms`;
+    return value;
   };
 
   const play = () => {
-    list.classList.remove('is-in');
-    void list.offsetWidth;
-    requestAnimationFrame(() => list.classList.add('is-in'));
+    const items = Array.from(list.querySelectorAll<HTMLElement>('li'));
+    const gap = apply();
+
+    items.forEach((item) => item.getAnimations().forEach((animation) => animation.cancel()));
+
+    if (prefersReduced.matches) return;
+
+    items.forEach((item, index) => {
+      item.animate(
+        [
+          { opacity: 0, translate: '0 10px' },
+          { opacity: 1, translate: '0 0' },
+        ],
+        {
+          duration: 380,
+          delay: index * gap,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          fill: 'both',
+        },
+      );
+    });
   };
 
-  range?.addEventListener('input', () => {
-    apply();
-    play();
-  });
+  range?.addEventListener('input', play);
   replay?.addEventListener('click', play);
   apply();
 
@@ -179,40 +194,59 @@ function setupDrag(root: HTMLElement) {
 
 function setupMorph(root: HTMLElement) {
   const card = root.querySelector<HTMLElement>('[data-morph-card]');
-  const detail = root.querySelector<HTMLElement>('[data-morph-detail]');
+  const thumb = root.querySelector<HTMLElement>('[data-morph-thumb]');
   const close = root.querySelector<HTMLElement>('[data-morph-close]');
-  if (!card || !detail) return;
+  if (!card || !thumb) return;
 
-  const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  const easing = 'cubic-bezier(0.32, 0.72, 0, 1)';
+  const isOpen = () => card.classList.contains('is-open');
 
-  const flip = (target: HTMLElement, from: DOMRect) => {
-    const to = target.getBoundingClientRect();
-    target.style.transformOrigin = 'top left';
-    target.animate(
+  // FLIP on the one element that survives both states: the thumbnail.
+  const flip = (from: DOMRect) => {
+    if (prefersReduced.matches) return;
+    const to = thumb.getBoundingClientRect();
+    thumb.getAnimations().forEach((animation) => animation.cancel());
+    thumb.animate(
       [
         {
           transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})`,
-          borderRadius: '14px',
+          transformOrigin: 'top left',
         },
-        { transform: 'none', borderRadius: '18px' },
+        { transform: 'none', transformOrigin: 'top left' },
       ],
-      { duration: 460, easing },
+      { duration: 520, easing },
     );
   };
 
-  card.addEventListener('click', () => {
-    const from = card.getBoundingClientRect();
-    card.hidden = true;
-    detail.hidden = false;
-    if (!prefersReduced.matches) flip(detail, from);
+  const expand = () => {
+    if (isOpen()) return;
+    const from = thumb.getBoundingClientRect();
+    card.classList.add('is-open');
+    card.setAttribute('aria-expanded', 'true');
+    flip(from);
+  };
+
+  const collapse = () => {
+    if (!isOpen()) return;
+    const from = thumb.getBoundingClientRect();
+    card.classList.remove('is-open');
+    card.setAttribute('aria-expanded', 'false');
+    flip(from);
+  };
+
+  card.addEventListener('click', (event) => {
+    if ((event.target as Element).closest('[data-morph-close]')) return;
+    expand();
   });
 
-  close?.addEventListener('click', () => {
-    const from = detail.getBoundingClientRect();
-    detail.hidden = true;
-    card.hidden = false;
-    if (!prefersReduced.matches) flip(card, from);
+  card.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    if (isOpen()) collapse();
+    else expand();
   });
+
+  close?.addEventListener('click', collapse);
 }
 
 function setupSkeleton(root: HTMLElement) {
@@ -234,9 +268,13 @@ function setupReduced(root: HTMLElement) {
   if (!input || !stage || !panel) return;
 
   const play = () => {
+    // Kill the transition while snapping back, otherwise the reset frame is
+    // cancelled by the class we add right after it and nothing moves.
+    panel.style.transition = 'none';
     panel.classList.remove('is-in');
     void panel.offsetWidth;
-    requestAnimationFrame(() => panel.classList.add('is-in'));
+    panel.style.transition = '';
+    requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('is-in')));
   };
 
   input.addEventListener('change', () => {
