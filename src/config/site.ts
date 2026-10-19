@@ -46,6 +46,7 @@ export const navigation: NavLink[] = [
   { label: '作品', href: '/work/' },
   { label: '关于', href: '/about/' },
   { label: '简历', href: '/resume/' },
+  { label: '小游戏', href: '/play/' },
 ];
 
 export const legalLinks: NavLink[] = [

@@ -1,0 +1,19 @@
+---
+import PixelEye from '@/components/play/PixelEye.astro';
+import PageHero from '@/components/ui/PageHero.astro';
+import { PLAY_COPY } from '@/config/play';
+import { siteConfig } from '@/config/site';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="玩一下"
+  description={`一个关于对齐的小游戏：把方块拖到方框正中央，看看你的眼睛准到几个像素。${siteConfig.name} 做的。`}
+>
+  <PageHero eyebrow={PLAY_COPY.eyebrow} title={PLAY_COPY.title} highlight={PLAY_COPY.highlight} text={PLAY_COPY.text} />
+
+  <div class="shell pb-4">
+    <PixelEye />
+    <p class="mt-10 text-sm text-muted">{PLAY_COPY.footnote}</p>
+  </div>
+</BaseLayout>

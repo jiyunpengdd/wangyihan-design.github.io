@@ -1,0 +1,345 @@
+---
+import { PLAY_ROUNDS } from '@/config/play';
+
+const total = PLAY_ROUNDS.length;
+---
+
+<div class="game" data-game>
+  <div class="game__bar">
+    <p class="game__round">
+      第 <b data-round>1</b> / {total} 轮
+    </p>
+    <ol class="game__dots" data-dots aria-hidden="true">
+      {PLAY_ROUNDS.map(() => (
+        <li />
+      ))}
+    </ol>
+    <p class="game__best" data-best hidden></p>
+  </div>
+
+  <div class="game__board" data-board data-state="idle">
+    <div class="game__target" data-target aria-hidden="true"></div>
+
+    <div
+      class="game__tile"
+      data-tile
+      tabindex="0"
+      aria-label="可拖动的方块：拖动到方框正中，方向键微调，回车判定"
+    ></div>
+
+    <svg class="game__measure" data-measure aria-hidden="true">
+      <line data-measure-line />
+      <circle data-measure-dot r="2.5" />
+    </svg>
+
+    <div class="game__summary" data-summary hidden>
+      <p class="game__summary-label">五轮平均偏差</p>
+      <p class="game__summary-value">
+        <b data-final-value>0.0</b>
+        <span>px</span>
+      </p>
+      <p class="game__summary-rank" data-final-rank></p>
+      <p class="game__summary-note" data-final-note></p>
+      <button class="btn btn-primary btn-sm game__restart" type="button" data-restart>
+        再来一轮
+      </button>
+    </div>
+  </div>
+
+  <div class="game__readout" aria-live="polite">
+    <p class="game__hint" data-hint>
+      按住方块拖动，松手即判
+    </p>
+    <p class="game__result" data-result hidden>
+      <b data-result-value>0.0</b>
+      <span class="game__unit">px</span>
+      <em data-result-note></em>
+    </p>
+    <button class="btn btn-primary btn-sm game__next" type="button" data-next hidden>
+      下一轮
+    </button>
+  </div>
+</div>
+
+<style>
+  .game {
+    width: min(100%, 34rem);
+    margin-top: 3rem;
+  }
+
+  .game__bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  .game__round b {
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game__dots {
+    display: flex;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .game__dots li {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 999px;
+    background: var(--line-strong);
+    transition:
+      background-color 240ms ease,
+      scale 240ms var(--ease-out-expo);
+  }
+
+  .game__dots li[data-done] {
+    background: var(--accent);
+    scale: 1.35;
+  }
+
+  .game__best {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game__best[hidden] {
+    display: none;
+  }
+
+  .game__board {
+    --tile-size: 64px;
+    position: relative;
+    margin-top: 1rem;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    /* 纯色面板。任何纹理都会变成判断中心的参照物，所以什么都不加 */
+    background-color: color-mix(in oklab, var(--sunken) 42%, var(--canvas));
+  }
+
+  /* 深色下 --sunken 跟画布太接近，棋盘会糊成一片，单独提一档 */
+  :global(.dark) .game__board {
+    background-color: color-mix(in oklab, var(--sunken) 88%, var(--canvas));
+  }
+
+  .game__tile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    border-radius: 0.375rem;
+    background: var(--accent);
+    box-shadow: 0 8px 20px -10px color-mix(in oklab, var(--accent) 70%, transparent);
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+  }
+
+  /* 小方块也要好抓：给一圈透明的额外命中区 */
+  .game__tile::after {
+    content: '';
+    position: absolute;
+    inset: -0.75rem;
+  }
+
+  .game__tile[data-dragging] {
+    cursor: grabbing;
+    box-shadow: 0 12px 26px -10px color-mix(in oklab, var(--accent) 80%, transparent);
+  }
+
+  .game__target {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    border: 1px dashed color-mix(in oklab, var(--ink) 45%, transparent);
+    border-radius: 0.375rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms ease;
+  }
+
+  .game__board[data-state='judged'] .game__target {
+    opacity: 1;
+  }
+
+  .game__measure {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms ease;
+  }
+
+  .game__board[data-state='judged'] .game__measure {
+    opacity: 1;
+  }
+
+  /* 标注用近黑色：压在粉色方块上也要看得见 */
+  .game__measure line {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 4 4;
+  }
+
+  .game__measure circle {
+    fill: var(--ink);
+  }
+
+  .game__readout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .game__hint {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .game__hint[hidden],
+  .game__result[hidden] {
+    display: none;
+  }
+
+  .game__result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .game__result b {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game__unit {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .game__result em {
+    flex-basis: 100%;
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-style: normal;
+  }
+
+  .game__next {
+    margin-left: auto;
+    flex: none;
+  }
+
+  .game__next[hidden] {
+    display: none;
+  }
+
+  .game__summary {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 0.15rem;
+    padding: 1.5rem;
+    text-align: center;
+    background: color-mix(in oklab, var(--canvas) 92%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .game__summary[hidden] {
+    display: none;
+  }
+
+  .game__summary-label {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+  }
+
+  .game__summary-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    margin-top: 0.25rem;
+  }
+
+  .game__summary-value b {
+    font-size: clamp(2.5rem, 1.8rem + 2vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .game__summary-value span {
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  .game__summary-rank {
+    margin-top: 0.6rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .game__summary-note {
+    max-width: 20rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .game__restart {
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 40rem) {
+    .game__bar {
+      font-size: 0.75rem;
+    }
+
+    .game__readout {
+      min-height: 4.5rem;
+    }
+
+    .game__result b {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .game__dots li,
+    .game__target,
+    .game__measure {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { initPixelEye } from '@/scripts/pixel-eye';
+
+  initPixelEye();
+</script>
