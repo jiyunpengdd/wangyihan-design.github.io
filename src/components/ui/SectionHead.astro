@@ -1,4 +1,6 @@
 ---
+import TechHeading from '@/components/ui/TechHeading.astro';
+
 interface Props {
   eyebrow?: string;
   title: string;
@@ -10,11 +12,9 @@ const { eyebrow, title, text, id } = Astro.props;
 ---
 
 <div class="reveal flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
-  <div class="max-w-2xl">
+  <div class="max-w-2xl flex-1">
     {eyebrow && <p class="eyebrow">{eyebrow}</p>}
-    <h2 id={id} class="mt-4 text-section">
-      {title}
-    </h2>
+    <TechHeading id={id} class="mt-4 text-section" text={title} />
     {text && <p class="mt-5 text-lead text-muted">{text}</p>}
   </div>
   <slot />

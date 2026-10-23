@@ -1,0 +1,93 @@
+---
+import type { TechTextOptions } from '@/scripts/tech-heading';
+
+interface Props {
+  as?: 'h2' | 'h3';
+  id?: string;
+  class?: string;
+  text: string;
+  /** 覆盖默认参数，见 src/scripts/tech-heading.ts 的 TechTextOptions */
+  options?: Partial<TechTextOptions>;
+}
+
+const { as: Tag = 'h2', id, class: className, text, options = {} } = Astro.props;
+
+const config: TechTextOptions = {
+  text,
+  align: 'left',
+  // 标题要跟页面网格对齐，原版默认留 5% 边距
+  edgePadding: 0,
+  // 画布向左右各溢出 14px，放选择框和像素点；页面的 gutter 最小 16px，不会撑出横向滚动
+  bleed: 14,
+  accentColor: 'var(--accent)',
+  reveal: 'letter',
+  reach: 170,
+  // 中文笔画密，虚线在 48px 上会糊成一团噪点，改用细实线描边
+  strokeWidth: 1,
+  lineStyle: 'solid',
+  dashLength: 3,
+  dashGap: 3,
+  specks: 8,
+  // 尺寸标注在标题尺度上像调试信息，关掉
+  labels: false,
+  sweep: true,
+  speed: 0.7,
+  ...options,
+};
+---
+
+<Tag id={id} class:list={['tech-heading', className]} data-tech-heading={JSON.stringify(config)} data-tech-text={text}>
+  <span class="tech-heading__fallback">{text}</span>
+</Tag>
+
+<style>
+  .tech-heading {
+    position: relative;
+    display: block;
+    width: 100%;
+    /* 组件按高度的 66% 适配文字。中文字体的上下 métrics 接近 1.4em，
+       盒子得给到 2.15em，字才能按原字号渲染而不被缩小 */
+    height: 2.15em;
+    /* 抵消多出来的高度：占用高度仍等于原来的行高 1.06em */
+    margin-block: -0.545em;
+    touch-action: pan-y;
+  }
+
+  .tech-heading__fallback {
+    display: block;
+    transition: opacity 400ms var(--ease-out-expo);
+  }
+
+  .tech-heading.is-ready .tech-heading__fallback {
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .tech-heading :global(.tech-heading__canvas) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 500ms var(--ease-out-expo);
+  }
+
+  .tech-heading.is-ready :global(.tech-heading__canvas) {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tech-heading__fallback,
+    .tech-heading :global(.tech-heading__canvas) {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { initTechHeadings } from '@/scripts/tech-heading';
+
+  initTechHeadings();
+</script>
