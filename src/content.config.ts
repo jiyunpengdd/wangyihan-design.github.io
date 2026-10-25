@@ -31,6 +31,22 @@ const work = defineCollection({
       featured: z.boolean().default(false),
       draft: z.boolean().default(false),
       url: z.url().optional(),
+      /**
+       * 内嵌的可操作演示。文件放 `public/` 下，走同源 http，
+       * iframe 里才拿得到剪贴板这类权限（`file://` 下会静默失败）。
+       */
+      demo: z
+        .object({
+          /** 演示页地址 */
+          src: z.string(),
+          /** 第二个 tab 的地址，一般是设计规范 */
+          spec: z.string().optional(),
+          demoLabel: z.string().default('交互演示'),
+          specLabel: z.string().default('设计规范'),
+          /** tab 上方的一句话说明 */
+          note: z.string().optional(),
+        })
+        .optional(),
     }),
 });
 

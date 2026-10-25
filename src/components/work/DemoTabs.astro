@@ -1,0 +1,260 @@
+---
+import Icon from '@/components/ui/Icon.astro';
+
+interface Props {
+  /** 演示页地址，`public/` 下的路径 */
+  src: string;
+  /** 第二个 tab 的地址，一般是设计规范 */
+  spec?: string;
+  demoLabel?: string;
+  specLabel?: string;
+  /** 舞台下方的一句说明 */
+  note?: string;
+  /** iframe 的 title 前缀，读屏用 */
+  label: string;
+  initial?: 'demo' | 'spec';
+}
+
+const { src, spec, demoLabel = '交互演示', specLabel = '设计规范', note, label, initial = 'demo' } = Astro.props;
+
+const hasTabs = Boolean(spec);
+const active = hasTabs ? initial : 'demo';
+
+// 同页可能有多个实例，id 不能写死
+const uid = `demo-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class="demo" data-demo>
+  <div class="demo-bar">
+    {hasTabs ? (
+      <div class="demo-tabs" role="tablist" aria-label="演示视图">
+        <button
+          class="demo-tab"
+          type="button"
+          role="tab"
+          id={`${uid}-tab-demo`}
+          aria-controls={`${uid}-panel-demo`}
+          aria-selected={active === 'demo' ? 'true' : 'false'}
+          tabindex={active === 'demo' ? 0 : -1}
+          data-target="demo"
+        >
+          {demoLabel}
+        </button>
+        <button
+          class="demo-tab"
+          type="button"
+          role="tab"
+          id={`${uid}-tab-spec`}
+          aria-controls={`${uid}-panel-spec`}
+          aria-selected={active === 'spec' ? 'true' : 'false'}
+          tabindex={active === 'spec' ? 0 : -1}
+          data-target="spec"
+        >
+          {specLabel}
+        </button>
+      </div>
+    ) : (
+      <p class="demo-single">{demoLabel}</p>
+    )}
+
+    <a class="btn btn-ghost btn-sm demo-open" href={active === 'spec' && spec ? spec : src} target="_blank" rel="noopener">
+      新窗口打开
+      <Icon name="arrow-up-right" class="icon-nudge-diagonal size-4" />
+    </a>
+  </div>
+
+  <div class="demo-stage">
+    <div
+      class="demo-panel"
+      id={`${uid}-panel-demo`}
+      role="tabpanel"
+      aria-labelledby={hasTabs ? `${uid}-tab-demo` : undefined}
+      hidden={active !== 'demo'}
+      data-panel="demo"
+    >
+      <iframe
+        class="demo-frame"
+        src={src}
+        title={`${label} · ${demoLabel}`}
+        allow="clipboard-write"
+      ></iframe>
+    </div>
+
+    {spec && (
+      <div
+        class="demo-panel"
+        id={`${uid}-panel-spec`}
+        role="tabpanel"
+        aria-labelledby={`${uid}-tab-spec`}
+        hidden={active !== 'spec'}
+        data-panel="spec"
+      >
+        <iframe class="demo-frame" title={`${label} · ${specLabel}`} data-src={spec} allow="clipboard-write"></iframe>
+      </div>
+    )}
+  </div>
+
+  {note && (
+    <p class="demo-hint">
+      <Icon name="lightbulb" class="size-4" />
+      <span>{note}</span>
+    </p>
+  )}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-demo]').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('.demo-tab'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('.demo-panel'));
+    const openLink = root.querySelector<HTMLAnchorElement>('.demo-open');
+    if (tabs.length === 0) return;
+
+    // 第二个 tab 的 iframe 首次切过去才加载，别让 150KB 拖累首屏
+    const hydrate = (panel: HTMLElement) => {
+      const frame = panel.querySelector<HTMLIFrameElement>('iframe');
+      if (frame && !frame.getAttribute('src') && frame.dataset.src) frame.src = frame.dataset.src;
+    };
+
+    const activate = (name: string) => {
+      tabs.forEach((tab) => {
+        const on = tab.dataset.target === name;
+        tab.setAttribute('aria-selected', String(on));
+        tab.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach((panel) => {
+        const on = panel.dataset.panel === name;
+        panel.hidden = !on;
+        if (on) hydrate(panel);
+      });
+      if (openLink) {
+        const target = panels.find((panel) => panel.dataset.panel === name)?.querySelector('iframe');
+        const href = target?.getAttribute('src') ?? target?.dataset.src;
+        if (href) openLink.href = href;
+      }
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activate(tab.dataset.target ?? 'demo'));
+      tab.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault();
+        const step = event.key === 'ArrowRight' ? 1 : -1;
+        const next = tabs[(index + step + tabs.length) % tabs.length];
+        next.focus();
+        activate(next.dataset.target ?? 'demo');
+      });
+    });
+  });
+</script>
+
+<style>
+  .demo-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .demo-tabs {
+    display: inline-flex;
+    gap: 0.125rem;
+    padding: 0.25rem;
+    border-radius: 999px;
+    background: var(--sunken);
+  }
+
+  .demo-tab {
+    padding: 0.5rem 1.05rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 200ms var(--ease-out-expo),
+      color 200ms var(--ease-out-expo);
+  }
+
+  .demo-tab:hover {
+    color: var(--ink);
+  }
+
+  .demo-tab[aria-selected='true'] {
+    background: var(--inverse);
+    color: var(--on-inverse);
+  }
+
+  .demo-tab:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .demo-single {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .demo-stage {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .demo-panel[hidden] {
+    display: none;
+  }
+
+  .demo-frame {
+    display: block;
+    width: 100%;
+    /* 演示是桌面端应用布局，给足高度才看得清三栏；窄屏下退成图标栏 */
+    height: clamp(30rem, 76vh, 50rem);
+    border: 0;
+    /* 原型本身是白底浅色界面，跟站点主题无关，别让它跟着变暗 */
+    background: #fff;
+    color-scheme: light;
+  }
+
+  .demo-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .demo-hint :global(.icon) {
+    flex: none;
+    margin-top: 0.15rem;
+  }
+
+  @media (max-width: 40rem) {
+    .demo-bar {
+      gap: 0.65rem;
+    }
+
+    .demo-tab {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.85rem;
+    }
+
+    .demo-open {
+      width: 100%;
+    }
+
+    .demo-frame {
+      height: clamp(26rem, 72vh, 40rem);
+    }
+  }
+</style>

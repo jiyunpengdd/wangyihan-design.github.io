@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RuiMate 研发协同助手 · Agent</title>
+<style>
+:root{
+  --primary:#2f6bff; --primary-h:#1f56e0; --primary-soft:#eaf1ff;
+  --ink:#1f2329; --ink2:#4e5563; --ink3:#9aa1ad;
+  --bg:#fff; --side:#fafafa; --line:#ececf0; --line2:#f3f4f6;
+  --ok:#14a05a; --warn:#d98314; --danger:#e04a4a;
+  --soft-blue:#eef4ff; --soft-green:#e9f8ef; --soft-orange:#fff5e6; --soft-purple:#f4efff; --soft-red:#fdeeee;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+body{font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;height:100vh;display:flex;overflow:hidden;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:#e2e4e9;border-radius:8px;}
+
+/* ============ 侧边栏 ============ */
+.side{width:244px;flex-shrink:0;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;transition:width .2s;}
+.side.mini{width:64px;}
+.side.mini .brand .bt,.side.mini .navitem span.lb,.side.mini .navgroup,.side.mini .sidefoot{display:none;}
+.side.mini .navitem{justify-content:center;padding:0;}
+.brand{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;}
+.brand .ava{width:38px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.brand .ava img{width:100%;height:100%;object-fit:contain;display:block;}
+.brand .bt{font-size:15px;font-weight:600;line-height:1.3;}
+.brand .bs{font-size:11.5px;color:var(--ink3);margin-top:1px;}
+.nav{flex:1;overflow-y:auto;padding:0 10px 8px;}
+.navgroup{font-size:11px;color:#b3b9c4;padding:12px 12px 5px;letter-spacing:.4px;display:flex;align-items:center;gap:4px;}
+.navgroup .gadd{margin-left:auto;width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#b3b9c4;}
+.navgroup .gadd:hover{background:#eceef3;color:var(--primary);}
+#taskGroup{padding:6px 8px 6px 13px;border-radius:8px;cursor:pointer;gap:5px;transition:background .15s,color .15s;margin-top:6px;font-size:12px;font-weight:500;color:#6b7484;letter-spacing:.2px;}
+#taskGroup:hover{background:#f1f2f5;color:#3a4150;}
+#taskGroup .chev{width:12px;height:12px;fill:none;stroke:currentColor;opacity:.55;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transition:transform .18s;flex-shrink:0;}
+#taskGroup.collapsed .chev{transform:rotate(0deg);}
+#sideTasks.tt-hide{display:none;}
+.stask{display:flex;align-items:center;gap:8px;height:36px;padding:0 11px 0 13px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--ink2);transition:.15s;}
+.stask:hover{background:#f1f2f5;}
+.stask.on{background:var(--primary-soft);color:var(--primary);font-weight:600;}
+.stask.on .st-time{color:#9fb8f5;}
+.stask .sn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stask .st-time{font-size:11.5px;color:#b3b9c4;flex-shrink:0;}
+.stask .spk{width:15px;height:15px;flex-shrink:0;color:#2f6bff;animation:spkRot .9s linear infinite;margin-left:1px;}
+.stask.thinking .st-time{display:none;}
+@keyframes spkRot{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.side.mini .stask{display:none;}
+.stask .sdot{width:5px;height:5px;border-radius:50%;background:var(--primary);flex-shrink:0;}
+.stask.done .sdot{background:#d5d9e0;}
+/* ---- 任务条「更多」按钮与悬浮菜单 ---- */
+.stask{position:relative;}
+.stask .st-time{transition:opacity .13s;}
+.stask .smore{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:24px;height:24px;padding:0;border:0;border-radius:7px;background:transparent;color:#8b92a0;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .13s,background .13s,color .13s;}
+.stask .smore svg{width:15px;height:15px;}
+.stask:hover .smore,.stask.menuopen .smore{opacity:1;pointer-events:auto;}
+.stask .smore:hover,.stask.menuopen .smore{background:rgba(23,29,41,.07);color:#3a4150;}
+.stask.on .smore:hover,.stask.on.menuopen .smore{background:rgba(47,107,255,.15);color:var(--primary);}
+.stask:hover .st-time,.stask.menuopen .st-time{opacity:0;}
+.stask.thinking .smore{display:none;}
+.stask .st-time .spin{display:inline-flex;align-items:center;line-height:0;}
+.stask .st-time .spin svg{width:12.5px;height:12.5px;color:#a3aab8;vertical-align:0;}
+.stask.on .st-time .spin svg{color:#8fadee;}
+.stask .srename{width:100%;height:24px;border:1px solid var(--primary);border-radius:6px;padding:0 6px;font:inherit;font-size:13px;color:var(--ink);background:#fff;outline:none;}
+.smenu{position:fixed;z-index:130;min-width:166px;padding:5px;background:#fff;border:1px solid #ebeef3;border-radius:12px;box-shadow:0 12px 32px rgba(17,24,39,.16),0 2px 6px rgba(17,24,39,.06);animation:smenuIn .12s ease-out;}
+@keyframes smenuIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+.smenu .mi{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;font-size:13.5px;color:var(--ink);cursor:pointer;white-space:nowrap;}
+.smenu .mi .svgic{width:15px;height:15px;color:#8b92a0;}
+.smenu .mi:hover{background:#f2f3f6;}
+.smenu .sep{height:1px;margin:5px 7px;background:#eef0f3;}
+.smenu .mi.danger,.smenu .mi.danger .svgic{color:var(--danger);}
+.smenu .mi.danger:hover{background:#fdf0ef;}
+.navitem{display:flex;align-items:center;gap:9px;height:36px;padding:0 11px;border-radius:9px;color:var(--ink2);font-size:13.5px;cursor:pointer;margin-bottom:1px;transition:.15s;user-select:none;}
+.navitem:hover{background:#f1f2f5;}
+.navitem.on{background:var(--primary-soft);color:var(--primary);font-weight:600;}
+.navitem.on .svgic{stroke:var(--primary);}
+
+
+
+
+.sidefoot{padding:10px;border-top:1px solid var(--line);}
+.rolebox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+.rolebox label{font-size:10.5px;color:var(--ink3);display:block;margin-bottom:3px;}
+.rolebox select{border:none;outline:none;background:transparent;font-size:12.5px;width:100%;color:var(--ink);font-family:inherit;cursor:pointer;}
+
+/* ============ 主区 ============ */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff;}
+.top{height:54px;flex-shrink:0;display:flex;align-items:center;padding:0 16px;gap:10px;border-bottom:1px solid var(--line2);position:relative;}
+.iconbtn{width:30px;height:30px;border:none;background:transparent;border-radius:8px;cursor:pointer;color:var(--ink3);font-size:15px;display:flex;align-items:center;justify-content:center;}
+.iconbtn:hover{background:#f2f3f5;color:var(--ink2);}
+.ttl{position:absolute;left:50%;transform:translateX(-50%);text-align:center;}
+.ttl b{font-size:14px;font-weight:600;display:block;line-height:1.25;}
+.ttl span{font-size:10.5px;color:#b3b9c4;display:block;}
+/* 新建任务页：隐藏顶部标题与分隔线，让欢迎区顶到顶栏（其余页面不变） */
+body.in-newtask .ttl{display:none;}
+body.in-newtask .top{border-bottom-color:transparent;}
+.views{flex:1;position:relative;overflow:hidden;background:#fafbfc;}
+.view{position:absolute;inset:0;overflow-y:auto;padding:22px 28px 44px;display:none;}
+.view.on{display:block;}
+
+/* ============ 首页 ============ */
+.home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 48px;}
+.home.hide{display:none;}
+.home h1{font-size:30px;font-weight:600;letter-spacing:.5px;margin-bottom:8px;text-align:center;}
+.home .sub2{font-size:12.5px;color:var(--ink3);margin-bottom:28px;}
+.composer{width:100%;max-width:720px;background:#fff;border:1px solid #e8e9ee;border-radius:18px;padding:16px 18px 12px;box-shadow:0 4px 20px rgba(31,35,41,.05);transition:.2s;}
+.composer:focus-within{border-color:#d5dcea;box-shadow:0 6px 24px rgba(47,107,255,.09);}
+.composer .cin{width:100%;border:none;outline:none;font-size:15px;line-height:1.6;font-family:inherit;color:var(--ink);background:transparent;padding:2px 0 18px;}
+.composer .cin::placeholder{color:#b9bec8;}
+.crow{display:flex;align-items:center;gap:8px;}
+.tool{display:inline-flex;align-items:center;gap:5px;border:1px solid #e9eaef;background:#fff;border-radius:18px;padding:5px 12px;font-size:12.5px;color:var(--ink2);cursor:pointer;font-family:inherit;transition:.15s;}
+.tool:hover{background:#f7f8fa;}
+.tool.on{background:var(--primary-soft);border-color:#cfe0ff;color:var(--primary);}
+.composer{position:relative;}
+.toolpop{position:absolute;bottom:calc(100% + 8px);left:0;background:#fff;border:1px solid #e7e9ef;border-radius:12px;box-shadow:0 10px 30px rgba(23,26,33,.14);padding:10px 12px 8px;width:268px;display:none;z-index:60;}
+.toolpop.on{display:block;}
+.toolpop .tph{font-size:11px;color:#9aa1ad;margin:0 4px 6px;}
+.tpit{display:flex;align-items:center;gap:7px;padding:6px;border-radius:8px;cursor:pointer;font-size:12.5px;color:#3c424d;}
+.tpit:hover{background:#f6f7fa;}
+.tpit.dis{opacity:.5;cursor:default;}
+.tpit input{accent-color:#2f6bff;flex-shrink:0;}
+.tpit .td{font-size:10.5px;color:#b3b9c4;margin-left:auto;white-space:nowrap;}
+.plan .ph .ptool{font-size:10.5px;color:#8a919e;background:#f5f6f8;border-radius:8px;padding:2px 7px;white-space:nowrap;}
+.sp{flex:1;}
+.cicon{width:30px;height:30px;border:none;background:transparent;border-radius:8px;color:var(--ink2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cicon:hover{background:#f2f3f5;}
+.send{width:34px;height:34px;border-radius:50%;border:none;background:#eceef3;color:#b3b9c4;font-size:16px;cursor:default;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.send.on{background:var(--primary);color:#fff;cursor:pointer;}
+.send.on:hover{background:var(--primary-h);}
+.send .svgic{stroke:currentColor;stroke-width:1.5;}
+.sugs{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:24px;max-width:920px;}
+.sug{display:inline-flex;align-items:center;gap:6px;border:1px solid #eaebef;background:#fff;border-radius:20px;padding:8px 14px;font-size:12.5px;color:var(--ink2);cursor:pointer;font-family:inherit;transition:.15s;}
+.sug:hover{border-color:#cfe0ff;background:#f8faff;color:var(--primary);}
+.home .hint{margin-top:22px;font-size:11.5px;color:#c2c7d0;}
+
+/* ============ 会话 ============ */
+.conv{flex:1;display:none;flex-direction:column;min-height:0;}
+.conv.on{display:flex;}
+.chatlist{flex:1;overflow-y:auto;padding:22px 32px 10px;}
+.wrap{max-width:800px;margin:0 auto;}
+.msg{display:flex;gap:10px;margin-bottom:18px;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.avatar{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;margin-top:2px;}
+.avatar.bot{background:#fff;border:1px solid #eceef3;padding:2px;}
+.avatar img{width:100%;height:100%;object-fit:contain;display:block;}
+.bubble{max-width:88%;font-size:14px;line-height:1.72;color:var(--ink);}
+.msg.bot .bubble{background:transparent;border:0;border-radius:0;padding:2px 0;box-shadow:none;}
+.msg.me{justify-content:flex-end;}
+.msg.me .bubble{background:var(--primary-soft);border-radius:12px 2px 12px 12px;padding:10px 15px;max-width:70%;}
+.bubble p{margin:3px 0;}
+.bubble ul{margin:6px 0 6px 17px;}
+.bubble li{margin:3px 0;}
+.mut{color:var(--ink3);font-size:12px;}
+.ref{display:inline-block;background:#f5f7fb;color:#6b7484;font-size:11.5px;border-radius:6px;padding:1px 8px;margin:2px 4px 0 0;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.chip{border:1px solid #e5e9f2;background:#fff;color:var(--primary);border-radius:16px;padding:5px 12px;font-size:12.5px;cursor:pointer;transition:.15s;}
+.chip:hover{background:var(--primary-soft);border-color:#cfe0ff;}
+.chatinput{padding:12px 32px 20px;background:#fff;}
+.chatinput .composer{padding:12px 16px 10px;box-shadow:0 2px 12px rgba(31,35,41,.05);}
+.chatinput .cin{padding-bottom:12px;font-size:14px;}
+.dots{display:flex;gap:4px;align-items:center;height:20px;}
+.dots i{width:6px;height:6px;border-radius:50%;background:#c8cdd6;animation:bounce 1.2s infinite;}
+.dots i:nth-child(2){animation-delay:.15s;} .dots i:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-4px);opacity:1;}}
+
+/* 思考流（WorkBuddy 风格） */
+.think{display:flex;flex-direction:column;gap:1px;min-width:160px;}
+.tk{display:flex;align-items:flex-start;gap:7px;font-size:12.8px;line-height:1.85;color:#5b6270;}
+.tk .tki{width:15px;height:15px;flex-shrink:0;margin-top:4px;color:#969dab;display:flex;align-items:center;justify-content:center;}
+.tk .tki .svgic{width:13px;height:13px;stroke-width:1.2;}
+.tk.plain{padding-left:0;color:#4e5563;}
+.tk.wait{color:#b7bcc6;}
+.tk .lk{color:var(--ink);font-weight:400;margin-left:5px;animation:fade .3s ease;}
+.tmeta{display:flex;align-items:center;gap:9px;margin-top:7px;font-size:11.8px;color:#b7bcc6;}
+.tmeta i{font-style:normal;color:#e2e5ec;}
+.bubble .ans{margin-top:12px;}
+.bubble .ans:first-child{margin-top:0;}
+.cur{display:inline-block;width:5px;height:12px;border-radius:1.5px;background:var(--primary);vertical-align:-2px;margin-left:2px;animation:blink 1.05s steps(1) infinite;}
+@keyframes blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+/* 执行计划清单 */
+.plan{border:1px solid #eceef2;border-radius:10px;padding:10px 13px 11px;margin:2px 0 6px;background:#fcfcfd;max-width:560px;box-sizing:border-box;}
+.plan .ph{display:flex;align-items:center;gap:7px;font-size:12px;color:#8a919e;margin-bottom:7px;}
+.plan .ph b{font-size:12.5px;font-weight:500;color:#3c424d;}
+.plan .ph .pn{margin-left:auto;font-size:11.5px;color:#b3b9c4;}
+.plan .ph .svgic{width:13px;height:13px;stroke-width:1.2;}
+.ps{display:flex;align-items:flex-start;gap:9px;font-size:12.8px;line-height:1.7;color:#5b6270;padding:2.5px 0;position:relative;}
+.ps .dot{width:13px;height:13px;border-radius:50%;border:1px solid #d8dce4;flex-shrink:0;margin-top:4px;background:#fff;position:relative;box-sizing:border-box;}
+.ps.doing .dot{border-color:var(--primary);}
+.ps.doing .dot::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--primary);animation:plpulse 1s ease-in-out infinite;}
+.ps.done .dot{border-color:var(--primary);background:var(--primary);}
+.ps.done .dot::after{content:'';position:absolute;left:4px;top:1.4px;width:3.4px;height:7px;border-right:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(40deg);}
+.ps.done .pt{color:#9aa1ad;}
+.ps.skip .pt{text-decoration:line-through;color:#c3c8d1;}
+.ps.skip .dot{border-style:dashed;background:#fff;}
+.ps .skipb{margin-left:auto;font-size:11px;color:#c0c5ce;cursor:pointer;opacity:0;transition:.15s;padding-left:10px;flex-shrink:0;}
+.ps:hover .skipb{opacity:1;}
+.ps .skipb:hover{color:var(--danger);}
+@keyframes plpulse{0%,100%{opacity:.32;}50%{opacity:1;}}
+/* 附件 */
+.attach{display:flex;flex-wrap:wrap;gap:7px;padding:0 3px 8px;}
+.attach:empty{display:none;}
+.fchip{display:flex;align-items:center;gap:7px;border:1px solid #e6e9ef;background:#fff;border-radius:8px;padding:4px 9px;font-size:11.5px;color:#5b6270;max-width:280px;}
+.fchip b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fchip i{font-style:normal;color:#b3b9c4;flex-shrink:0;}
+.fchip .fx{cursor:pointer;color:#c0c5ce;flex-shrink:0;padding-left:2px;}
+.fchip .fx:hover{color:var(--danger);}
+.dragover{outline:2px dashed var(--primary);outline-offset:-7px;}
+.fnote{font-size:11.5px;color:#8a919e;margin-bottom:7px;line-height:1.6;}
+/* 澄清卡 */
+.clarify{border:1px solid #eceef2;border-radius:10px;padding:11px 13px;background:#fcfcfd;max-width:560px;}
+.cq{font-size:12.8px;color:#3c424d;display:flex;gap:7px;align-items:flex-start;line-height:1.6;}
+.cq .svgic{width:14px;height:14px;color:var(--primary);flex-shrink:0;margin-top:3px;stroke-width:1.2;}
+.copt{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.cobtn{border:1px solid #e2e6ee;background:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;color:#3c424d;cursor:pointer;transition:.15s;}
+.cobtn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft);}
+.cobtn[disabled]{opacity:.45;cursor:default;}
+/* 连接器 */
+.conn-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+/* 应用卡：品牌色大图标 + 标题/描述 + 右上角圆形操作钮（参照连接器市场样式） */
+.conn{display:flex;align-items:center;gap:14px;border:1px solid #eef0f4;border-radius:14px;padding:16px 16px;background:#fff;transition:box-shadow .15s,border-color .15s;}
+.conn:hover{border-color:#e2e6ee;box-shadow:0 5px 16px rgba(31,41,72,.07);}
+.conn .ci{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.conn .ci .svgic{width:22px;height:22px;}
+.conn .cmain{flex:1 1 auto;min-width:0;}
+.conn .cn{font-size:15px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conn .cdesc{font-size:12.5px;color:#8a93a3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conn .cdot{width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f2f3f7;color:#5b6270;transition:.15s;align-self:flex-start;}
+.conn .cdot:hover{background:#e7eaef;color:#1f2329;}
+.conn .cdot.on{background:#e8f3ec;color:#3f9e6e;}
+.conn .cdot.on:hover{background:#dcede3;}
+.conn .cdot .svgic{width:15px;height:15px;}
+#toolList{grid-template-columns:repeat(2,minmax(0,1fr));}
+/* 工具卡：头像式图标 + 标题/描述 + 能力标签 + 使用量 + 关联内容 + 按钮（参照专家市场样式） */
+.toolcard{border:1px solid #eef0f4;border-radius:14px;padding:16px;background:#fff;display:flex;flex-direction:column;gap:10px;transition:box-shadow .15s,border-color .15s;}
+.toolcard:hover{border-color:#e2e6ee;box-shadow:0 5px 16px rgba(31,41,72,.07);}
+.toolcard .thead{display:flex;align-items:center;gap:12px;min-width:0;}
+.toolcard .tava{width:48px;height:48px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;letter-spacing:.5px;flex-shrink:0;}
+.toolcard .tinfo{flex:1;min-width:0;}
+.toolcard .tname{font-size:15px;font-weight:600;line-height:1.3;}
+.toolcard .tdesc{font-size:12.5px;color:#8a93a3;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toolcard .ttags{display:flex;flex-wrap:wrap;gap:8px;}
+.toolcard .ttag{font-size:12.5px;color:#5b6270;background:#f4f6fa;border-radius:7px;padding:5px 11px;}
+.toolcard .tuse{display:flex;align-items:center;gap:5px;font-size:12px;color:#b3b9c4;}
+.toolcard .trel{font-size:12px;color:#8a93a3;padding-top:9px;border-top:1px solid #f1f3f7;}
+.toolcard .tbtns{display:flex;gap:8px;}
+/* 定时任务 */
+.auto-row{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid #f2f3f6;}
+.auto-row:last-child{border-bottom:0;}
+.auto-row .an{font-size:13px;font-weight:600;}
+.auto-row .ak{font-size:11.5px;color:#9aa1ad;margin-top:3px;}
+.auto-row .last{font-size:11.5px;color:#b3b9c4;white-space:nowrap;}
+.sw{width:34px;height:19px;border-radius:20px;background:#e3e7ee;position:relative;cursor:pointer;transition:.18s;flex-shrink:0;}
+.sw.on{background:var(--primary);}
+.sw::after{content:'';position:absolute;width:15px;height:15px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.sw.on::after{left:17px;}
+/* 记忆 */
+.mem-row{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #f2f3f6;}
+.mem-row:last-child{border-bottom:0;}
+.mem-k{font-size:12.8px;font-weight:600;}
+.mem-v{font-size:12.5px;color:#5b6270;margin-top:3px;line-height:1.6;}
+.mem-src{font-size:11px;color:#b3b9c4;margin-top:4px;}
+.mem-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.mem-tag{font-size:10.5px;color:#7b8494;background:#f4f6fa;border-radius:4px;padding:1px 6px;line-height:1.5;}
+.mem-del{margin-left:auto;font-size:11.5px;color:#a9b0bb;cursor:pointer;flex-shrink:0;}
+.mem-del:hover{color:var(--danger);}
+/* 确认卡可编辑字段 */
+.cedit{border:1px solid transparent;border-bottom:1px dashed #cfd5df;background:transparent;font:inherit;font-size:13px;color:var(--ink);padding:1px 4px;border-radius:4px;outline:none;min-width:72px;max-width:220px;}
+.cedit:hover{border-bottom-color:var(--primary);}
+.cedit:focus{border:1px solid var(--primary);border-bottom-style:solid;background:#fff;box-shadow:0 0 0 3px rgba(47,107,255,.09);}
+select.cedit{border-bottom-style:solid;border-color:#e2e6ee;background:#fff;cursor:pointer;}
+/* 撤销条 */
+.undobar{display:none;align-items:center;justify-content:center;gap:10px;padding-bottom:9px;font-size:12.2px;color:#6b7484;}
+.undobar.on{display:flex;}
+.undobar button{border:1px solid #e2e6ee;background:#fff;border-radius:20px;padding:4px 13px;font-size:12px;color:var(--primary);cursor:pointer;}
+.undobar button:hover{background:var(--primary-soft);}
+.undobar .ucd{color:#b3b9c4;font-variant-numeric:tabular-nums;}
+/* 执行 trace */
+.trace{margin-top:9px;border-top:1px dashed #eef0f4;padding-top:7px;max-width:560px;}
+.tgl{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#a2a9b6;cursor:pointer;user-select:none;}
+.tgl:hover{color:var(--primary);}
+.tgl .svgic{width:12px;height:12px;stroke-width:1.2;}
+.tbody{display:none;margin-top:7px;border-left:1px solid #eef0f4;padding-left:10px;}
+.trace.open .tbody{display:block;}
+.trow{display:flex;align-items:baseline;gap:10px;font-size:11.5px;line-height:1.75;color:#7b8494;padding:2px 0;}
+.trow code{font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:11px;color:#5b6270;background:#f5f6f8;border-radius:4px;padding:1px 5px;flex:0 0 auto;white-space:nowrap;min-width:118px;box-sizing:border-box;}
+.trow span{color:#9aa1ad;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.trow em{font-style:normal;color:var(--ok);flex:0 0 auto;white-space:nowrap;}
+/* 停止生成 */
+.stopbar{display:none;justify-content:center;padding-bottom:9px;}
+.stopbar.on{display:flex;}
+.stopbar button{border:1px solid #e5e8ee;background:#fff;border-radius:20px;padding:5px 14px 5px 12px;font-size:12px;color:#6b7484;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;}
+.stopbar button:hover{border-color:#d5dae3;color:#1f2329;background:#fafbfc;}
+.stopbar i{width:8px;height:8px;background:#1f2329;border-radius:1.5px;display:block;}
+
+
+/* 确认卡 */
+.confirm{border:1px solid #e8eaef;border-radius:12px;background:#fff;margin:6px 0;overflow:hidden;box-shadow:0 1px 6px rgba(31,35,41,.04);min-width:420px;max-width:100%;box-sizing:border-box;}
+.confirm .chead{padding:10px 14px;font-weight:600;color:var(--ink);font-size:13px;display:flex;align-items:center;gap:8px;background:#fafbfc;border-bottom:1px solid #f0f1f4;}
+.confirm .chead em{font-style:normal;color:var(--warn);font-size:11px;border:1px solid #f4e2c4;background:#fff8ec;border-radius:5px;padding:0 6px;}
+.confirm .cbody{padding:11px 14px;}
+.confirm table{width:100%;border-collapse:collapse;font-size:13px;}
+.confirm td{padding:6px 4px;border-bottom:1px solid #f5f6f8;vertical-align:top;}
+.confirm td:first-child{white-space:nowrap;padding-right:14px;color:var(--ink2);}
+.confirm tr:last-child td{border-bottom:none;}
+.confirm td:first-child{color:var(--ink3);width:94px;font-size:12.5px;}
+.confirm .cnote{font-size:12.5px;color:#8a6a22;background:#fffaf0;border:1px solid #f6ecd6;border-radius:8px;padding:7px 10px;margin-top:9px;line-height:1.6;}
+.confirm .cnote.red{color:#a33c3c;background:#fdf4f4;border-color:#f6dede;}
+.cbtns{display:flex;gap:9px;padding:10px 14px;border-top:1px solid #f5f6f8;background:#fcfcfd;}
+.btn{border:none;border-radius:8px;padding:7px 15px;font-size:12.5px;cursor:pointer;font-weight:500;font-family:inherit;transition:.15s;white-space:nowrap;}
+.btn.primary{background:var(--primary);color:#fff;}
+.btn.primary:hover{background:var(--primary-h);}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink2);}
+.btn.ghost:hover{background:#f7f8fa;}
+.btn.mini{padding:3px 10px;font-size:11.5px;border-radius:6px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ============ 通用 ============ */
+.svgic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;vertical-align:-2px;}
+.sug .svgic,.tool .svgic{width:15px;height:15px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{background:#f8f9fb;text-align:left;padding:9px 12px;color:var(--ink3);font-weight:500;font-size:12px;border-bottom:1px solid #eff0f3;white-space:nowrap;}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f5f6f8;color:var(--ink2);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:#fafcff;}
+/* 对话答复里的表格：圆角外框 + 灰表头（参照对话卡片语气） */
+.bubble .tbl{border-collapse:separate;border-spacing:0;border:1px solid #eaedf2;border-radius:10px;background:#fff;margin:9px 0 5px;font-size:13.5px;overflow:hidden;}
+.bubble .tbl th{padding:10px 14px;background:#f7f8fa;border-bottom:1px solid #eaedf2;color:var(--ink);font-weight:600;font-size:12.5px;}
+.bubble .tbl td{padding:11px 14px;border-bottom:1px solid #f1f3f7;}
+.bubble .tbl tr:last-child td{border-bottom:none;}
+.bubble .tbl thead th:first-child{border-top-left-radius:9px;}
+.bubble .tbl thead th:last-child{border-top-right-radius:9px;}
+.bubble .tbl tbody tr:last-child td:first-child{border-bottom-left-radius:9px;}
+.bubble .tbl tbody tr:last-child td:last-child{border-bottom-right-radius:9px;}
+.bubble .tbl tbody tr:hover td{background:#fafcff;}
+/* 表格卡：灰色表头横条与卡片左右、顶部零间距 */
+.card.tblcard{padding:0;overflow:auto;}
+.card.tblcard > .tbl th:first-child,.card.tblcard > .tbl td:first-child{padding-left:30px;}
+.card.tblcard > .tbl th:last-child,.card.tblcard > .tbl td:last-child{padding-right:30px;}
+/* 项目表 8 列，窄屏下别把每列压到一两个字，宁可让卡片横向滚 */
+#projTable{min-width:820px;}
+.rowlink{cursor:pointer;}
+.pill{display:inline-block;padding:1px 9px;border-radius:9px;font-size:11px;font-weight:500;white-space:nowrap;}
+.st-done{background:var(--soft-green);color:var(--ok);}
+.st-doing{background:var(--soft-blue);color:var(--primary);}
+.st-wait{background:#f4f5f7;color:#8b929e;}
+.st-late{background:var(--soft-red);color:var(--danger);}
+.st-hold{background:var(--soft-purple);color:#7a4fe0;}
+.st-undis{background:var(--soft-orange);color:var(--warn);}
+.tag{display:inline-block;font-size:11px;background:#f4f6fa;color:#6b7484;border-radius:5px;padding:1px 7px;margin-right:5px;}
+.ctrl-tag{display:inline-block;background:#fdf3f3;color:#d46a6a;border:1px solid #f7e3e3;font-size:10px;border-radius:4px;padding:0 4px;margin-left:5px;}
+.ms-tag{display:inline-block;background:#f6f2ff;color:#8464d8;border:1px solid #ece4fb;font-size:10px;border-radius:4px;padding:0 4px;margin-left:4px;}
+.h2{font-size:17px;font-weight:600;margin-bottom:3px;}
+.sub{color:var(--ink3);font-size:12.5px;margin-bottom:16px;}
+.crumb{font-size:12px;color:var(--ink3);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.crumb a{color:var(--ink2);cursor:pointer;text-decoration:none;}
+.crumb a:hover{color:var(--primary);}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:0 1px 4px rgba(31,35,41,.03);}
+.grid{display:grid;gap:14px;}
+.g4{grid-template-columns:repeat(4,1fr);} .g3{grid-template-columns:repeat(3,1fr);} .g2{grid-template-columns:1fr 1fr;}
+.kpi .kl{color:var(--ink3);font-size:12px;}
+.kpi .kv{font-size:25px;font-weight:600;margin:5px 0 3px;letter-spacing:-.5px;}
+.kpi .kd{font-size:11.5px;color:var(--ink3);}
+.up{color:var(--ok);} .down{color:var(--danger);}
+.mt16{margin-top:16px;} .mt10{margin-top:10px;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.tab{border:1px solid var(--line);background:#fff;border-radius:18px;padding:6px 15px;font-size:12.5px;cursor:pointer;color:var(--ink2);transition:.15s;}
+.tab:hover{border-color:#cfe0ff;color:var(--primary);}
+.tab.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:500;}
+.utabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+.utab{padding:9px 2px;font-size:13.5px;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.utab.on{color:var(--primary);font-weight:600;border-color:var(--primary);}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink3);margin-top:6px;}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;}
+.audit-item{display:flex;gap:14px;padding:11px 2px;border-bottom:1px solid #f5f6f8;font-size:13px;color:var(--ink2);}
+.audit-item:last-child{border-bottom:none;}
+.audit-item .t{color:var(--ink3);width:145px;flex-shrink:0;font-size:11.5px;}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1f2329;color:#fff;padding:9px 20px;border-radius:9px;font-size:12.5px;opacity:0;transition:.3s;z-index:99;pointer-events:none;}
+.toast.show{opacity:.93;}
+.filterbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.input2{border:1px solid #e8eaef;border-radius:9px;padding:7px 12px;font-size:13px;outline:none;font-family:inherit;width:240px;}
+.input2:focus{border-color:#cfe0ff;}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+.seg span{padding:6px 13px;font-size:12.5px;cursor:pointer;color:var(--ink2);background:#fff;}
+.seg span.on{background:var(--primary-soft);color:var(--primary);font-weight:600;}
+
+/* 甘特 */
+.gantt{font-size:12px;}
+.grow{display:flex;align-items:center;height:30px;border-bottom:1px solid #f6f7f9;}
+.glabel{width:230px;flex-shrink:0;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:10px;cursor:pointer;}
+.gtrack{flex:1;position:relative;height:100%;background:linear-gradient(90deg,#f6f7f9 1px,transparent 1px) 0 0/8.33% 100%;}
+.gbar{position:absolute;top:8px;height:14px;border-radius:7px;}
+.gaxis{display:flex;margin-left:230px;color:var(--ink3);font-size:11px;padding-bottom:4px;}
+.gaxis span{flex:1;text-align:left;}
+
+/* 阶段门 */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.kcol{background:#fafbfc;border:1px solid #eef0f4;border-radius:12px;padding:10px;min-height:220px;}
+.khead{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:8px;}
+.kcard{background:#fff;border:1px solid #eceef3;border-radius:10px;padding:10px 11px;margin-bottom:8px;font-size:12.5px;color:var(--ink2);cursor:pointer;transition:.15s;}
+.kcard:hover{border-color:#cfe0ff;box-shadow:0 2px 8px rgba(47,107,255,.08);}
+.kcard b{display:block;color:var(--ink);font-size:13px;margin-bottom:4px;font-weight:600;}
+
+/* 抽屉 */
+.overlay{position:fixed;inset:0;background:rgba(31,35,41,.22);opacity:0;pointer-events:none;transition:.22s;z-index:40;}
+.overlay.on{opacity:1;pointer-events:auto;}
+.drawer{position:fixed;top:0;right:0;width:580px;max-width:92vw;height:100%;background:#fff;box-shadow:-10px 0 34px rgba(31,35,41,.12);transform:translateX(100%);transition:transform .24s;z-index:50;display:flex;flex-direction:column;}
+.drawer.on{transform:none;}
+.dhead{padding:16px 20px 0;}
+/* 标题下只保留一条分隔线：dhead 自身不再画线（有 tabs 时用 tabs 的底边线，无 tabs 时用空 tabs 的底线） */
+.dhead .utabs:empty{margin-bottom:0;}
+.dtitle{display:flex;align-items:flex-start;gap:10px;}
+.dtitle h3{font-size:16px;font-weight:600;flex:1;line-height:1.45;}
+.dclose{width:28px;height:28px;border:none;background:transparent;border-radius:7px;cursor:pointer;color:var(--ink3);font-size:16px;}
+.dclose:hover{background:#f2f3f5;}
+.dbody{flex:1;overflow-y:auto;padding:16px 20px 30px;}
+.dfoot{padding:12px 20px;border-top:1px solid var(--line2);display:flex;gap:9px;background:#fcfcfd;}
+.timeline{border-left:1px solid #e8eaef;margin-left:5px;padding-left:16px;}
+.tlitem{position:relative;padding-bottom:15px;}
+.tlitem::before{content:'';position:absolute;left:-20px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 2px #eaf1ff;}
+.tlitem.todo::before{background:#dfe3ea;box-shadow:0 0 0 2px #f4f5f7;}
+.tlitem b{font-size:13px;font-weight:600;}
+.tlitem span{display:block;font-size:12px;color:var(--ink3);margin-top:2px;}
+.dl{display:grid;grid-template-columns:92px 1fr;gap:8px 12px;font-size:13px;}
+.dl dt{color:var(--ink3);font-size:12.5px;}
+.dl dd{color:var(--ink);}
+
+@media (max-width:1100px){ .g4{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:1fr 1fr;} .g2{grid-template-columns:1fr;} .kanban{grid-template-columns:1fr 1fr;} }
+@media (max-width:760px){ .confirm{min-width:0;} .side{width:64px;} .brand .bt,.navgroup,.sidefoot{display:none;} .navitem span.lb,.navitem .cnt{display:none;} }
+
+/* ===== 新建任务 ===== */
+#view-newtask{padding:0;background:#fff;}
+#view-newtask.on{display:flex;flex-direction:column;}
+#view-newtask .home{flex:1;padding:0 24px 60px;}
+
+/* ===== 我的任务：左清单 / 右助手 ===== */
+#view-mytasks{padding:0;overflow:hidden;background:#fff;}
+#view-mytasks.on{display:block;}
+.navgroup[data-v]{cursor:pointer;transition:.15s;}
+.navgroup[data-v]:hover{color:var(--ink);}
+.navgroup[data-v].on{color:var(--ink);}
+#view-mytasks .tpage{position:absolute;inset:0;display:flex;min-height:0;}
+.tlist{overflow-y:auto;overflow-x:hidden;padding:18px 16px 36px;min-width:0;background:#fafbfc;border-right:1px solid #eef0f4;}
+.tlist .h2{font-size:15px;}
+.tlist .sub{font-size:12px;}
+.tlist .tbl th,.tlist .tbl td{font-size:11.5px;padding:7px 6px;white-space:nowrap;}
+.tlist .card{overflow-x:auto;}
+.tlist .tbl{min-width:420px;}
+.tlist .glabel{width:112px;max-width:112px;font-size:11.5px;}
+.tlist .gaxis{font-size:10.5px;}
+.tlist .gaxis span{font-size:10.5px;}
+#taskTable th:nth-child(1),#taskTable td:nth-child(1),
+#taskTable th:nth-child(3),#taskTable td:nth-child(3),
+#taskTable th:nth-child(6),#taskTable td:nth-child(6),
+#taskTable th:nth-child(8),#taskTable td:nth-child(8){display:none;}
+.tlist .tbl{min-width:0;}
+.tchat{flex:1;display:flex;flex-direction:column;min-height:0;background:#fff;position:relative;}
+.tchat .conv{display:flex;flex:1;min-height:0;}
+.tchat .chatlist{padding:18px 22px 8px;}
+.tchat .chatinput{padding:10px 22px 16px;}
+.tchat .chatlist{display:flex;flex-direction:column;}
+#view-mytasks .wrap{max-width:none;margin:0;}
+.tchat .chatinput .composer{max-width:none;}
+.tempty{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:0 26px 24px;}
+.tchat:not(.hasmsg) .tempty{display:flex;}
+
+.teic{width:44px;height:44px;border-radius:12px;background:#f3f6fc;display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:var(--primary);}
+.tempty p{font-size:12.5px;color:var(--ink3);text-align:center;max-width:430px;line-height:1.85;margin-bottom:18px;}
+.tempty .sugs{margin-top:0;max-width:470px;}
+@media(max-width:1180px){.tpage{grid-template-columns:minmax(290px,38%) minmax(0,1fr);}}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+
+<!-- ============ 侧边栏 ============ -->
+<aside class="side" id="side">
+  <div class="brand">
+    <div class="ava"><img id="brandLogo" alt="RuiMate"></div>
+    <div class="bt">RuiMate
+      <div class="bs">研发协同 · Agent</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="navitem" data-v="newtask" id="newTask">
+      <svg class="svgic" viewBox="0 0 16 16"><rect x="2.6" y="2.6" width="10.8" height="10.8" rx="2.6"/><path d="M8 5.4v5.2M5.4 8h5.2"/></svg>
+      <span class="lb">新建任务</span></div>
+    <div class="navitem" data-v="connectors"><svg class="svgic" viewBox="0 0 16 16"><path d="M6.67 8.67a3.33 3.33 0 0 0 5.03.36l2-2a3.33 3.33 0 0 0-4.71-4.71L7.84 3.46"/><path d="M9.33 7.33a3.33 3.33 0 0 0-5.03-.36l-2 2a3.33 3.33 0 0 0 4.71 4.71l1.15-1.14"/></svg><span class="lb">连接器</span></div>
+    <div class="navitem" data-v="automation"><svg class="svgic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M8 4.7V8l2.3 1.5"/></svg><span class="lb">定时任务</span></div>
+    <div class="navitem" data-v="memory"><svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.4l5 2.4-5 2.4-5-2.4z"/><path d="M3 8.4l5 2.4 5-2.4M3 11.4l5 2.4 5-2.4"/></svg><span class="lb">记忆</span></div>
+
+    <div class="navgroup">工作台</div>
+    <div class="navitem" data-v="projects"><svg class="svgic" viewBox="0 0 16 16"><path d="M2.4 4.6A1.6 1.6 0 014 3h2.4l1.3 1.6h4.3A1.6 1.6 0 0113.6 6v5.4A1.6 1.6 0 0112 13H4a1.6 1.6 0 01-1.6-1.6z"/></svg><span class="lb">项目库</span></div>
+    <div class="navitem" data-v="dash"><svg class="svgic" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.6" height="4.6" rx="1.2"/><rect x="8.9" y="2.5" width="4.6" height="4.6" rx="1.2"/><rect x="2.5" y="8.9" width="4.6" height="4.6" rx="1.2"/><rect x="8.9" y="8.9" width="4.6" height="4.6" rx="1.2"/></svg><span class="lb">组合仪表盘</span></div>
+    <div class="navitem" data-v="deliv"><svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.3l5.1 2.6v6.2L8 13.7 2.9 11.1V4.9L8 2.3z"/><path d="M2.9 4.9L8 7.5l5.1-2.6M8 7.5v6.2"/></svg><span class="lb">交付物管理</span></div>
+    <div class="navitem" data-v="changes"><svg class="svgic" viewBox="0 0 16 16"><path d="M13.2 8a5.2 5.2 0 01-9 3.6M2.8 8a5.2 5.2 0 019-3.6"/><path d="M11.4 2.6v2.2H9.2M4.6 13.4v-2.2h2.2"/></svg><span class="lb">变更与审批</span></div>
+    <div class="navitem" data-v="audit"><svg class="svgic" viewBox="0 0 16 16"><path d="M8 2l5 2v3.8c0 3-2.1 5.2-5 6.2-2.9-1-5-3.2-5-6.2V4l5-2z"/><path d="M5.9 7.9l1.5 1.5 2.8-2.9"/></svg><span class="lb">审计日志</span></div>
+
+    <div class="navgroup">助手</div>
+    <div class="navitem" data-v="flow"><svg class="svgic" viewBox="0 0 16 16"><path d="M2.6 8h3.2M10.2 8h3.2"/><circle cx="8" cy="8" r="2"/><path d="M8 2.2v3.8M8 10v3.8"/></svg><span class="lb">IPD 阶段门</span></div>
+    <div class="navitem" data-v="kb"><svg class="svgic" viewBox="0 0 16 16"><path d="M3.2 3.5h3.6a2 2 0 012 2v7.1a1.6 1.6 0 00-1.6-1.6H3.2zM12.8 3.5H9.2a2 2 0 00-2 2v7.1a1.6 1.6 0 011.6-1.6h4z"/></svg><span class="lb">知识库</span></div>
+    <div class="navitem" data-v="tools"><svg class="svgic" viewBox="0 0 16 16"><path d="M10.1 2.6a3.1 3.1 0 00-2.8 4.4l-4.4 4.4 1.7 1.7 4.4-4.4a3.1 3.1 0 104.1-4.1l-1.8 1.8-1.7-1.7 1.8-1.8a3 3 0 00-1.3-.3z"/></svg><span class="lb">工具集</span></div>
+
+    <div class="navgroup" id="taskGroup" title="收起 / 展开任务">
+      <span>任务 <span id="taskCount">(2)</span></span>
+      <svg class="chev" viewBox="0 0 16 16"><path d="M6.6 4.4L10.2 8l-3.6 3.6"/></svg>
+    </div>
+    <div id="sideTasks"></div>
+  </nav>
+  <div class="sidefoot">
+    <div class="rolebox">
+      <label>当前身份（镜像 PLM 权限）</label>
+      <select id="roleSel">
+        <option value="admin">王总 · 项目管理员</option>
+        <option value="pm" selected>张工 · 项目经理</option>
+        <option value="leader">李组长 · 模块组长</option>
+        <option value="member">小赵 · 模块组员</option>
+        <option value="guest">访客 · 游客（只读）</option>
+      </select>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ 主区 ============ -->
+<div class="main">
+  <header class="top">
+    <button class="iconbtn" id="toggleSide" title="收起/展开侧边栏"><svg class="svgic" viewBox="0 0 16 16" style="width:17px;height:17px;"><rect x="2.2" y="3" width="11.6" height="10" rx="2.2"/><path d="M6.4 3v10"/></svg></button>
+    <div class="ttl"><b id="viewTitle">任务</b></div>
+  </header>
+
+  <div class="views">
+    <!-- 项目库 -->
+    <section class="view" id="view-projects">
+      <div class="h2">项目库</div>
+      <div class="sub">按计划日期 / 阶段 / 健康度筛选；点击行进入项目详情</div>
+      <div class="filterbar">
+        <input class="input2" id="projSearch" placeholder="搜索项目名称 / 编号">
+        <div class="seg" id="projSeg"><span class="on" data-st="all">全部</span><span data-st="执行中">执行中</span><span data-st="已完成">已完成</span><span data-st="已暂停">已暂停</span></div>
+        <span class="mut" style="margin-left:auto;font-size:12px;">共 4 个项目</span>
+      </div>
+      <div class="card tblcard"><table class="tbl" id="projTable"></table></div>
+    </section>
+
+    <!-- 项目详情 -->
+    <section class="view" id="view-project">
+      <div class="crumb"><a data-act="nav_projects">项目库</a><span>/</span><span id="pdcrumb">G6-2026 车型改款</span></div>
+      <div id="projHead"></div>
+      <div class="utabs" id="projTabs"></div>
+      <div id="projBody"></div>
+    </section>
+
+    <!-- 组合仪表盘 -->
+    <section class="view" id="view-dash">
+      <div class="h2">研发组合仪表盘</div>
+      <div class="sub">多项目进度、成本、质量、风险四维监控 · 数据同步自 PLM 与项目报表</div>
+      <div class="grid g4" id="dashKpi"></div>
+      <div class="grid g2 mt16">
+        <div class="card"><div class="h2" style="font-size:14px;">项目组合进度</div><div id="dashProg" style="margin-top:12px;"></div></div>
+        <div class="card"><div class="h2" style="font-size:14px;">任务状态分布（G6）</div><div id="dashDonut" style="display:flex;align-items:center;gap:18px;margin-top:8px;"></div></div>
+      </div>
+      <div class="card mt16"><div class="h2" style="font-size:14px;">Agent 智能解读</div>
+        <p style="color:var(--ink2);margin-top:8px;line-height:1.85;">组合层面 2 个项目存在进度风险：<b>G6-2026</b> 受「结构冻结」逾期拖累（关键路径顺延约 2 周），<b>平台预研</b> 工作量偏差 +25.6% 且仍处概念阶段。建议：① 对 G6 发起工期变更并复核资源；② 平台预研增派 CAE 资源或收窄范围；③ 将 G5 的模具验收经验沉淀进知识库，供 G6 复用。</p>
+        <div class="chips"><span class="chip" data-act="nav_projects">查看项目库</span><span class="chip" data-q="组合层面哪些项目有风险？">问 Agent</span></div>
+      </div>
+    </section>
+
+    <!-- 任务与甘特 -->
+        <!-- 新建任务 -->
+    <section class="view" id="view-newtask">
+<div class="home" id="home">
+        <h1 id="greet">新建任务</h1>
+        <div class="sub2">直接说要做什么就行，工期、执行人这些我来补</div>
+        <div class="attach" id="attachList2"></div>
+        <div class="composer">
+          <input class="cin" placeholder='描述要建的任务，例如：模具验收，工期3天'>
+          <div class="crow">
+            <div class="sp"></div>
+            <button class="cicon" title="附件"><svg class="svgic" viewBox="0 0 16 16"><path d="M9.6 4.6l-4 4a2.5 2.5 0 003.5 3.5l4.2-4.2a3.6 3.6 0 00-5.1-5.1L3.6 7.5"/></svg></button>
+            <button class="send" title="发送"><svg class="svgic" viewBox="0 0 16 16" style="width:17px;height:17px"><path d="M8 12.6V3.6M4.2 7.4L8 3.6l3.8 3.8"/></svg></button>
+          </div>
+        </div>
+        <div class="sugs">
+          <button class="sug" data-q="创建一个子任务：模具验收，工期3天，执行人小王"><svg class="svgic" viewBox="0 0 16 16"><rect x="2.6" y="2.6" width="10.8" height="10.8" rx="2.6"/><path d="M8 5.4v5.2M5.4 8h5.2"/></svg>新建子任务</button>
+          <button class="sug" data-q="创建一个子任务：结构优化验证，前置任务为结构冻结"><svg class="svgic" viewBox="0 0 16 16"><path d="M3.4 8h4.2M8.4 8h4.2"/><circle cx="8" cy="8" r="1.6"/><circle cx="2.4" cy="8" r="1.2"/><circle cx="13.6" cy="8" r="1.2"/></svg>带前置依赖</button>
+          <button class="sug" data-q="创建一个受控任务：模具验收，10/28-11/05"><svg class="svgic" viewBox="0 0 16 16"><rect x="3" y="6.6" width="10" height="6.8" rx="1.6"/><path d="M5.4 6.6V5a2.6 2.6 0 015.2 0v1.6"/></svg>设受控任务</button>
+          <button class="sug" data-q="把小李的任务改给小王"><svg class="svgic" viewBox="0 0 16 16"><circle cx="5.6" cy="5.6" r="2.2"/><path d="M2.2 12.6a3.4 3.4 0 016.8 0M11.2 5.4l2.6 2.6-2.6 2.6"/></svg>批量改派</button>
+          <button class="sug" data-q="催办未读任务"><svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.4a4 4 0 014 4v3l1.2 1.8H2.8L4 9.4v-3a4 4 0 014-4z"/><path d="M6.6 12.6a1.5 1.5 0 002.8 0"/></svg>催办未读</button>
+          <button class="sug" data-q="帮我检查交付物缺漏"><svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.3l5.1 2.6v6.2L8 13.7 2.9 11.1V4.9L8 2.3z"/><path d="M2.9 4.9L8 7.5l5.1-2.6M8 7.5v6.2"/></svg>交付物检查</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的任务（任务清单 + 任务助手对话） -->
+    <section class="view on" id="view-mytasks">
+      <div class="tpage">
+        
+        <div class="tchat">
+<div class="conv" id="conv">
+        <div class="chatlist" id="chatlist"><div class="wrap" id="chatwrap"></div>
+<div class="tempty" id="chatEmpty">
+            <div class="teic"><svg class="svgic" viewBox="0 0 16 16" style="width:22px;height:22px"><rect x="2.6" y="2.6" width="10.8" height="10.8" rx="2.6"/><path d="M8 5.4v5.2M5.4 8h5.2"/></svg></div>
+            <p>直接问我 —— 改计划、催办、查交付物、出周报，或换个项目看进度</p>
+<div class="sugs">
+          <button class="sug" data-q="我今天有哪些要处理的？"><svg class="svgic" viewBox="0 0 16 16"><path d="M5.5 4.2h8M5.5 8h8M5.5 11.8h5"/><circle cx="2.8" cy="4.2" r=".8" fill="currentColor" stroke="none"/><circle cx="2.8" cy="8" r=".8" fill="currentColor" stroke="none"/><circle cx="2.8" cy="11.8" r=".8" fill="currentColor" stroke="none"/></svg>今日待办</button>
+          <button class="sug" data-q="项目现在到哪个阶段了？"><svg class="svgic" viewBox="0 0 16 16"><path d="M2.6 8h3.2M10.2 8h3.2"/><circle cx="8" cy="8" r="2"/><path d="M8 2.2v3.8M8 10v3.8"/></svg>IPD 阶段</button>
+          <button class="sug" data-q="看看工作量偏差超过20%的项目"><svg class="svgic" viewBox="0 0 16 16"><path d="M3.2 13V8.6M8 13V3.4M12.8 13v-5.2"/></svg>工作量偏差</button>
+          <button class="sug" data-q="帮我检查交付物缺漏"><svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.3l5.1 2.6v6.2L8 13.7 2.9 11.1V4.9L8 2.3z"/><path d="M2.9 4.9L8 7.5l5.1-2.6M8 7.5v6.2"/></svg>交付物检查</button>
+          <button class="sug" data-q="有没有类似项目的经验可以复用？"><svg class="svgic" viewBox="0 0 16 16"><path d="M3.2 3.5h3.6a2 2 0 012 2v7.1a1.6 1.6 0 00-1.6-1.6H3.2zM12.8 3.5H9.2a2 2 0 00-2 2v7.1a1.6 1.6 0 011.6-1.6h4z"/></svg>知识复用</button>
+          <button class="sug" data-q="结构冻结要推后两周，帮我走变更"><svg class="svgic" viewBox="0 0 16 16"><path d="M13.2 8a5.2 5.2 0 01-9 3.6M2.8 8a5.2 5.2 0 019-3.6"/><path d="M11.4 2.6v2.2H9.2M4.6 13.4v-2.2h2.2"/></svg>变更向导</button>
+          <button class="sug" data-q="本周有哪些评审门要过？"><svg class="svgic" viewBox="0 0 16 16"><path d="M3 13V8.5M8 13V4M13 13V9.5"/><path d="M2 13h12"/></svg>评审门</button>
+          <button class="sug" data-q="生成本周项目周报"><svg class="svgic" viewBox="0 0 16 16"><path d="M4 2.6h5l3 3v7.8H4z"/><path d="M9 2.6v3h3M6.2 8.6h3.6M6.2 11h2.4"/></svg>生成周报</button>
+        </div>
+          </div></div>
+        <div class="chatinput">
+          <div class="attach" id="attachList"></div>
+          <div class="undobar" id="undoBar"><span id="undoTxt"></span><span class="ucd" id="undoCd">5s</span><button id="undoBtn">撤销</button></div>
+          <div class="stopbar" id="stopBar"><button id="stopBtn"><i></i>停止生成</button></div>
+          <div class="composer">
+            <input class="cin" placeholder="继续追问，或输入指令…">
+            <div class="crow">
+              <div class="sp"></div>
+              <button class="cicon" title="附件"><svg class="svgic" viewBox="0 0 16 16"><path d="M9.6 4.6l-4 4a2.5 2.5 0 003.5 3.5l4.2-4.2a3.6 3.6 0 00-5.1-5.1L3.6 7.5"/></svg></button>
+                <button class="send" title="发送"><svg class="svgic" viewBox="0 0 16 16" style="width:17px;height:17px"><path d="M8 12.6V3.6M4.2 7.4L8 3.6l3.8 3.8"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        </div>
+      </div>
+    </section></section>
+
+    <!-- 交付物 -->
+    <section class="view" id="view-deliv">
+      <div class="h2">交付物管理</div>
+      <div class="sub">交付物规则 × 交付区目录 × 生命周期状态，提交任务时自动校验</div>
+      <div class="grid g3" id="delivKpi"></div>
+      <div class="card mt16 tblcard head">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 30px 6px;">
+          <b style="font-size:14px;">交付物清单</b>
+          <span class="mut" style="font-size:12px;">共 7 项 · 缺失 2 项</span>
+          <span style="margin-left:auto;"><button class="btn ghost mini" data-act="deliv_scan">运行缺漏检查</button></span>
+        </div>
+        <table class="tbl" id="delivTable"></table>
+      </div>
+      <div class="grid g2 mt16">
+        <div class="card"><div class="h2" style="font-size:14px;">交付区目录（mileStone 模式）</div><div id="delivTree" style="margin-top:10px;font-size:13px;color:var(--ink2);line-height:2;"></div></div>
+        <div class="card"><div class="h2" style="font-size:14px;">规则校验说明</div>
+          <p style="color:var(--ink2);margin-top:8px;font-size:13px;line-height:1.9;">提交任务时按规则的 <b>交付物类型 + 生命周期状态</b> 校验：<br>· 有规则无交付物 → 阻断提交<br>· 交付物状态非「已发布」→ 提示补充<br>· 交付物未关联规则 → 进入待挂接清单</p>
+          <div class="chips"><span class="chip" data-q="交付物规则怎么配置？">问 Agent</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 变更 -->
+    <section class="view" id="view-changes">
+      <div class="h2">变更与审批</div>
+      <div class="sub">受控任务变更须走「计划调整 → 影响分析 → 计划对比 → 变更单 → 逐级审批 → 基线归档」</div>
+      <div class="grid g3" id="chgKpi"></div>
+      <div class="card mt16 tblcard"><table class="tbl" id="chgTable"></table></div>
+      <div class="card mt16"><div class="h2" style="font-size:14px;">变更影响提示</div>
+        <p style="color:var(--ink2);font-size:13px;margin-top:6px;line-height:1.9;">CHG-2026-012 通过后，T04 BOM 发布与 T10 SOP 评审将自动顺延，基线生成变更记录；<b>受控任务不可直接改计划日期</b>，任何绕过变更的修改都会被系统拦截。</p>
+        <div class="chips"><span class="chip" data-q="受控任务发布后还能改计划日期吗？">受控规则</span></div>
+      </div>
+    </section>
+
+    <!-- IPD 阶段门 -->
+    <section class="view" id="view-flow">
+      <div class="h2">IPD 阶段门 · G6-2026 车型改款</div>
+      <div class="sub">概念 → 计划 → 开发 → 验证 → 发布，每个阶段门（Gate）设准入交付物与评审决议</div>
+      <div class="kanban" id="flowKanban"></div>
+      <div class="grid g2 mt16">
+        <div class="card"><div class="h2" style="font-size:14px;">阶段门准入检查</div><div id="flowCheck" style="margin-top:10px;"></div></div>
+        <div class="card"><div class="h2" style="font-size:14px;">正向设计追溯链</div>
+          <div style="margin-top:12px;font-size:13px;line-height:2.1;color:var(--ink2);">
+            需求 <b>REQ-021 结构轻量化 8%</b><br>
+            <span style="color:var(--ink3)">→</span> 设计 <b>D-118 前舱结构方案 v2</b><br>
+            <span style="color:var(--ink3)">→</span> 仿真 <b>CAE-042 刚度分析（通过）</b><br>
+            <span style="color:var(--ink3)">→</span> 验证 <b>TEST-015 台架试验（待执行）</b>
+          </div>
+          <div class="chips"><span class="chip" data-q="需求到验证的追溯链完整吗？">追溯完整性检查</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 知识库 -->
+    <section class="view" id="view-kb">
+      <div class="h2">研发知识库</div>
+      <div class="sub">设计规范 / 经验案例 / 模板 / 方法论，按阶段与标签复用，支撑全周期知识传承</div>
+      <div class="filterbar">
+        <input class="input2" id="kbSearch" placeholder="搜索知识条目，例如：冻结、模流、BOM">
+        <div class="seg" id="kbSeg"><span class="on" data-t="all">全部</span><span data-t="设计规范">设计规范</span><span data-t="经验案例">经验案例</span><span data-t="模板">模板</span><span data-t="方法论">方法论</span></div>
+      </div>
+      <div class="grid g2" id="kbList"></div>
+    </section>
+
+    <!-- 工具集 -->
+    <section class="view" id="view-tools">
+      <div class="h2">工具集</div>
+      <div class="sub">综合设计环境：多学科 CAD / CAE / CAM / 协同 / PLM 工具，按任务自动推荐</div>
+      <div class="grid" id="toolList"></div>
+      <div class="card mt16"><div class="h2" style="font-size:14px;">按任务推荐工具</div>
+        <p style="color:var(--ink2);font-size:13px;margin-top:6px;">当前任务「模流分析」→ 推荐 <b>Moldflow</b>（模流） + <b>Abaqus</b>（结构耦合验证）；「BOM 发布」→ 推荐 <b>Teamcenter</b> + <b>RayZ 协同工作台</b>。</p>
+        <div class="chips"><span class="chip" data-q="做模流分析用哪个工具？">问 Agent 推荐</span></div>
+      </div>
+    </section>
+
+    <!-- 连接器 -->
+    <section class="view" id="view-connectors">
+      <div class="h2">连接器</div>
+      <div class="conn-grid" id="connList"></div>
+    </section>
+
+    <!-- 定时任务 -->
+    <section class="view" id="view-automation">
+      <div class="h2">定时任务</div>
+      <div class="sub">无需你开口，按时间或事件自主执行 —— 从「应答」变成「主动」</div>
+      <div class="card" id="autoList"></div>
+      <div class="card mt16">
+        <div class="h2" style="font-size:14px;">新建定时任务</div>
+        <p style="color:var(--ink3);font-size:12.5px;margin:6px 0 10px;">用一句话描述「什么时候做什么」，Agent 会把它排成定时任务。</p>
+        <div style="display:flex;gap:10px;">
+          <input class="input2" id="autoInput" placeholder="例如：每周五 17:00 汇总本周周报并发到项目群" style="flex:1;">
+          <button class="btn primary" data-act="auto_add">创建</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 记忆 -->
+    <section class="view" id="view-memory">
+      <div class="h2">记忆</div>
+      <div class="sub">跨会话沉淀的事实与偏好；随时可查、可删 —— 能删才敢信</div>
+      <div class="card" id="memList"></div>
+      <div class="card mt16">
+        <div class="h2" style="font-size:14px;">新增记忆</div>
+        <p style="color:var(--ink3);font-size:12.5px;margin:6px 0 10px;">也可以直接在对话里说「记住：周报按计划完成率统计」。</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input class="input2" id="memK" placeholder="主题，如 周报统计口径" style="flex:0 0 220px;">
+          <input class="input2" id="memV" placeholder="内容，如 按计划完成率，不按工时折算" style="flex:1;min-width:200px;">
+          <button class="btn primary" data-act="mem_add">保存</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 审计 -->
+    <section class="view" id="view-audit">
+      <div class="h2">Agent 审计日志</div>
+      <div class="sub">所有写操作全量留痕，并同步写入 PLM 项目日志页</div>
+      <div class="card" id="auditList"></div>
+    </section>
+  </div>
+</div>
+
+<!-- ============ 抽屉 ============ -->
+<div class="drawer" id="drawer">
+  <div class="dhead">
+    <div class="dtitle"><h3 id="dTitle">任务详情</h3><button class="dclose" id="dClose"></button></div>
+    <div class="utabs" id="dTabs"></div>
+  </div>
+  <div class="dbody" id="dBody"></div>
+  <div class="dfoot" id="dFoot"></div>
+</div>
+
+<input type="file" id="fileInput" multiple style="display:none">
+<div class="toast" id="toast"></div>
+<script>
+/* ================================================================
+   图标库（1px 线性圆角）
+================================================================ */
+const I={
+ chart:'<svg class="svgic" viewBox="0 0 16 16"><path d="M3.2 12.8V8.6M8 12.8V3.4M12.8 12.8v-4.4"/></svg>',
+ check:'<svg class="svgic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M5.4 8.2l1.7 1.7 3.4-3.5"/></svg>',
+ alert:'<svg class="svgic" viewBox="0 0 16 16"><path d="M6.9 2.6L1.2 12a1.3 1.3 0 0 0 1.1 2h11.4a1.3 1.3 0 0 0 1.1-2L9.1 2.6a1.3 1.3 0 0 0-2.2 0z"/><path d="M8 6.4v3"/><path d="M8 11.9v.1"/></svg>',
+ clock:'<svg class="svgic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M8 4.9V8l2.2 1.4"/></svg>',
+ doc:'<svg class="svgic" viewBox="0 0 16 16"><path d="M4.2 2.6h4.9l2.9 2.9v7.9H4.2z"/><path d="M9 2.6v3h3M6.2 8.6h3.6M6.2 11h2.4"/></svg>',
+ lock:'<svg class="svgic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M4.4 4.4l7.2 7.2"/></svg>',
+ search:'<svg class="svgic" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.2"/><path d="M10.3 10.3l3.1 3.1"/></svg>',
+ bell:'<svg class="svgic" viewBox="0 0 16 16"><path d="M4.3 11.4V7.7a3.7 3.7 0 017.4 0v3.7M3.1 11.4h9.8M6.6 13.1a1.5 1.5 0 002.8 0"/></svg>',
+ box:'<svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.3l5.1 2.6v6.2L8 13.7 2.9 11.1V4.9L8 2.3z"/><path d="M2.9 4.9L8 7.5l5.1-2.6M8 7.5v6.2"/></svg>',
+ book:'<svg class="svgic" viewBox="0 0 16 16"><path d="M3.2 3.5h3.6a2 2 0 012 2v7.1a1.6 1.6 0 00-1.6-1.6H3.2zM12.8 3.5H9.2a2 2 0 00-2 2v7.1a1.6 1.6 0 011.6-1.6h4z"/></svg>',
+ compass:'<svg class="svgic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M10.3 5.7L9.1 9.1 5.7 10.3 6.9 6.9z"/></svg>',
+ share:'<svg class="svgic" viewBox="0 0 16 16"><path d="M8 10.6V3.5M5.2 6.3L8 3.5l2.8 2.8"/><path d="M3.4 10.3v1.9a1.4 1.4 0 001.4 1.4h6.4a1.4 1.4 0 001.4-1.4v-1.9"/></svg>',
+ user:'<svg class="svgic" viewBox="0 0 16 16"><circle cx="8" cy="5.7" r="2.6"/><path d="M3 13.2c.5-2.5 2.6-3.7 5-3.7s4.5 1.2 5 3.7"/></svg>',
+ sparkle:'<svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.4l1.4 3.2 3.2 1.4-3.2 1.4L8 11.6 6.6 8.4 3.4 7l3.2-1.4z"/></svg>',
+ down:'<svg class="svgic" viewBox="0 0 16 16"><path d="M8 2.7v7.6M4.9 7.2L8 10.3l3.1-3.1"/><path d="M2.9 13.2h10.2"/></svg>',
+ flag:'<svg class="svgic" viewBox="0 0 16 16"><path d="M4 2.6v11"/><path d="M4 3.4h7.6l-1.4 2.4 1.4 2.4H4"/></svg>',
+ gate:'<svg class="svgic" viewBox="0 0 16 16"><path d="M3 13V3h10v10"/><path d="M6 13V6h4v7"/></svg>',
+ folder:'<svg class="svgic" viewBox="0 0 16 16"><path d="M2.4 4.6A1.6 1.6 0 014 3h2.4l1.3 1.6h4.3A1.6 1.6 0 0113.6 6v5.4A1.6 1.6 0 0112 13H4a1.6 1.6 0 01-1.6-1.6z"/></svg>',
+ wrench:'<svg class="svgic" viewBox="0 0 16 16"><path d="M10.1 2.6a3.1 3.1 0 00-2.8 4.4l-4.4 4.4 1.7 1.7 4.4-4.4a3.1 3.1 0 104.1-4.1l-1.8 1.8-1.7-1.7 1.8-1.8a3 3 0 00-1.3-.3z"/></svg>',
+ term:'<svg class="svgic" viewBox="0 0 16 16"><rect x="2.2" y="3.2" width="11.6" height="9.6" rx="2.4"/><path d="M5.3 6.5l1.7 1.6-1.7 1.6M8.6 9.9h2.2"/></svg>',
+ close:'<svg class="svgic" viewBox="0 0 16 16" style="width:15px;height:15px"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+ link:'<svg class="svgic" viewBox="0 0 16 16"><path d="M6.67 8.67a3.33 3.33 0 0 0 5.03.36l2-2a3.33 3.33 0 0 0-4.71-4.71L7.84 3.46"/><path d="M9.33 7.33a3.33 3.33 0 0 0-5.03-.36l-2 2a3.33 3.33 0 0 0 4.71 4.71l1.15-1.14"/></svg>',
+ plus:'<svg class="svgic" viewBox="0 0 16 16"><path d="M8 3.8v8.4M3.8 8h8.4"/></svg>',
+ pin:'<svg class="svgic" viewBox="0 0 16 16"><path d="M6.4 2.9h3.2"/><path d="M8 2.9v2.2"/><path d="M5.2 8.8h5.6"/><path d="M6.2 8.8c.1-1.8.9-2.5 1.8-3.7.9 1.2 1.7 1.9 1.8 3.7"/><path d="M8 8.8v4.3"/></svg>',
+ pencil:'<svg class="svgic" viewBox="0 0 16 16"><path d="M11.1 2.8l2.1 2.1"/><path d="M3.4 12.6l.5-2.4 6-6a1.5 1.5 0 0 1 2.1 2.1l-6 6-2.6.3z"/></svg>',
+ trash:'<svg class="svgic" viewBox="0 0 16 16"><path d="M3.3 5h9.4"/><path d="M6.4 5V3.5h3.2V5"/><path d="M4.7 5l.6 7.1a1.4 1.4 0 0 0 1.4 1.3h2.6a1.4 1.4 0 0 0 1.4-1.3L11.3 5"/><path d="M6.9 7.7v3.3M9.1 7.7v3.3"/></svg>',
+};
+
+const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAAAJw0lEQVR42u2d229c1RXGv7M9M/bM2A7YpVEukoVIrHKJIsWSnYdIscKlSioLEpCCFGiEaFEAh7wVLB5QVUVO1JdCgghQgVJIpT7EECABqSk1D5XiSH6oQSXCfiCSAwqXNL7NZHw7fUhTJUqTObPPOXuvfc73+wdsz/m8Z6/fXmdtgBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIa7jufTLHjwx4x8bquDbC4t8cv+HjlUZPNhVj23r8x4DGDHb9v3b/+rcAlMWgF2b8+jdUnTi2SoXfsn+o9MMXw0c+riM06OzPgMYEUcGLzFVNfLqiRIYwAjoe2fSZ5xqZ3hsHgOnyj4DGIKBU2X/w9OzTJMmvx8ocQUMw2sfl5miEEyVfRw8MeMzgNBTLtQtyd8/iw3gsaEK0xPRKrjz5Ys+A1hj4cHVL9qCRKqWERlAFh7Rs+/oDFdABDzxYFyi56tzCzj8aclnAHFz7cITj/g49EmZKyCoXawWJP1Hp30GENQuoJaRFcBDXP2MIUnLKJ73glomzQH8cnyO570WePHdaa6AAPDcm1NMgwW+vbAo4pxY2dYuLDzSXZAoahdQy6QxgNQuclZBmwWJonYhNtv3FbULGR6bx8l/VvxUBPDkSIXaRSD7B2bSsQLuF9oWBGoZK1pGUbsQm1pGUbsQXKVlel+f8BMZQLbZu8HgF3NGtYximz2BRS1jJIC9b0xQu8AtLWOqfV+ZKDwGP5/jUwXb960EkIUHpypYCyDPe0EtA4sDKu9/6YLRADYVPHTfk8WK1jr5K0zJx5lz8xgem4f0qauH99ziORfAvncmjR657djYgL5HGp0aOWzrH7VW3nquGZ2rc55TX8Emw9fTmXM2fADw19+2eE0FL5Xt+8r16QZNBQ/9jzc7G76rV3AIPieOS8so16cbPCb4wdVC75ait6xFpU7LKJe1y7IWhWcdmQYfhL2PNaaufV+5rF2e2ZxPlPboXJ3zOlZlIFnLnBmf88UG8JDh1W+rQxeyBCVO5YFIrsyYkbkCmm6zl/x1Fbog6W5IzVQF5eJ0g57OXGxeSgJ9DzemRssoF6cbJEG7VGPXz/OpaN9XrrXZ93TmkAZ2bip47SvqEn9OrFzTLmlY/a7wwsNFSNYyUez7VdhLBE2ufg911SNNSNcyH56eDV2QKFfeokqadEYNWkZyQRK2fV+5ol2SJp2RkHPisJciKhcuEUyqdEYN58SSV8EwdYByoc0+ydI5KL/ZWkAStUzNATz895Jx7ZJk6RyUrevz4s+JjQTwXcPjG9KkXarx7JZC4qYqKMnTDdIinVGDlpH8mehMVVBS2+zTJp1r+UZIkpZRUi83SUqnM1KoZWpp31dBtYvJ1weXtSjs3FTg6ofkt+8ridolzdI5KM9vKyZiqoKS1mafdukclPvW1ovWMkG746sG8MhnZrXLgV83MV1wX8sErRtUNe0yZfCS7Z7OHH62MsvVD8G1jOvt+0rSUElqF2i178PhYZfqZtcpUC24geSKuNqQghvuYidLZgsP3dkucz8O+wuTo1icu/ZFGZVthJe9dj/pZYvwMtfvMbOtHU6vvNOXfNEVMXSnY92z+wcjf9nvdhS1Kt+Zf/3Br5z9wNiH6WUK/w1xAUs2vC0mtKaeE2IY76Zsn8XqahfT4QMAf76ExfL3WJg6i6nhPp+3zSP0axTK9rmjrnQ2Hb7rvrZb1kLKexlS6enMVV1clM3ioH1FndbqN/GPJ+zecZu/DQ23P+q54NlguXEitIiO89xx4IVba36IlfHj/sLkWasfbH7VL60/XNPn83FZDWWrJV53f1ke+5PVDzZz692oX/kLz+X3MCRZDWXr/VQd6Vwa/aO/WP7e6ofbvP6A9fBJv32gln29svGW/tOahcelsT9b/WBzy+8V8YBNn8/HaTUCB/DOldlIzh11XzCfHtlrvfBoXPuiJ0G7mDyfR8zNJMr02DBd7TJ77m9WP9iGtm3ULjE0kyiTY8N0pfPFwe0CtMt2T8J9Iq5rl9AB3LmpoK1ldFa/yvhx64WHFO0iufDQ3dcrU5MKOlZltFY/29olt/xeapcYB0cpU2PDdIZvS9AuEgqPJGmXyKZj1RIoXelsW7vUtz0Il96vcEG7RDofcFfA5OtsTiVol+Jdezx2u6DqPXfWBlQGGRumszmdPT/o29YuEgqPkyMVX7p2sT4j+mZaRndzWvryNdhe/SQUHvsjvhRG4ugUFcU09xsVJK5ql+Ka56ldYGZet4rr/VTdzakE7ZJtXUftYmhet4rq/dTuNdnQq9/0yF5qFwtj8GBxdEpknaYHn1ryv4Kke01Wa/Wzft57xw7wvPfm6D5b6LwVp8N7p8q+zi84Ndznz303ZLXwuKX7L9ZXv943JvzBz+fEBvCLAz/xRF9YrRO+yvhxq+ED5Jz3Sg5fHG9Jinil3nbhIUW7SC884hidYj2AEs57JXz1Jvm8V3QAK1+/zzZ7AMeGKok97xUbwOmRvb4/X7L2871Mwbp2GRqd9e9/6YLo1S/OaaxWR2za1i71bVsBfKRdMHwTIjRTJR9nvpnHk69MQjI9nTnct7Y+tn9Sa//9Fwe3W937hdUukgcCQbB2EfEV7HqbvfQWKVhusxcfQNvaJfvTLm3tYvqm0CSc94oK4Oz5z6yvfk0d/V4SXR0cvCrDeADnJ0bhqnaR3iLl4lUZxgO4WD7v7HSDtKx+Jq/KMB7ATPMdzhYeaVj9TF+VYTyAdc3tTp73pqHwAMxflWE8gNnWdV6m5W7jH2zhzmeoXWBfu4jQMM1dBzwvUzBaeOSWbqR2EaBdxJwF17c9BBfa7KldEhrAQvuvPJW/DZLb7NOiXXSHxTvfDRNmXxa08Ci0P8nVL4Zh8YkIYG7pxlgLEmoXWGmzd6ohtbkrnqHf1C722uydeyckjilUYVqt0qJdoppu4HwAi3ftiVTLhDnvlT4QyHXtIjKAl/drj0OCdpE8EAgJ0C5iA9hw+/ZIChJqFxifbpCIAF5eBZ+gdjHAwaeWiLnrWFQAs63rvDD7tzDapf/oNLVL2gN4Zf+mU5DUNbWF0i5HBi+B2oUBBKB3Trxkw9vULo4UHuIDWOs5MbWLrDZ75wMIBB+TG7bNPi3aJc7pBokMYNDG1dzyB0DtYne6QSIDCFRvXKV2kdlmn5gAVitIqF0gss0+UQG8UUESZroBkB7tIuG81+kA3qhxNcx0A2oXBhBhGlepXdzVLpAynk2HyVO7fS/bGGr1kz4MEo6MVUtlAKMgDXP9nt6cF7/3c+orOEp2dDck9m/rWJ3BW7ubnQkfIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCksF/AJpmqY90eyQiAAAAAElFTkSuQmCC';
+
+/* ================================================================
+   数据
+================================================================ */
+const PROJECTS=[
+ {id:'G6',name:'G6-2026 车型改款',code:'XM-2026-036',st:'执行中',progress:62,health:'有风险',pm:'张工',stage:'开发（G3 前）',start:'2026-09-01',end:'2026-12-30',team:9,plan:'6,000h',act:'6,540h'},
+ {id:'G5',name:'G5 改款支持',code:'XM-2025-118',st:'执行中',progress:88,health:'正常',pm:'王总',stage:'验证（G4）',start:'2026-03-02',end:'2026-11-30',team:6,plan:'2,000h',act:'1,760h'},
+ {id:'PT',name:'平台预研-滑板底盘',code:'XM-2026-002',st:'执行中',progress:41,health:'延期',pm:'李组长',stage:'概念（G1）',start:'2026-06-01',end:'2027-03-31',team:5,plan:'3,200h',act:'4,020h'},
+ {id:'BP',name:'电池包结构预研',code:'XM-2026-019',st:'已完成',progress:100,health:'正常',pm:'小赵',stage:'已归档',start:'2026-01-05',end:'2026-08-20',team:4,plan:'1,500h',act:'1,420h'},
+];
+const state={
+  role:'pm', project:'G6', pTab:'overview', tFilter:'all', kbType:'all', chgTab:'all',
+  sessions:[
+    {id:'S1',title:'结构冻结工期变更',ago:'2小时前',taskId:'T03',msgs:[]},
+    {id:'S2',title:'模具采购申请催办',ago:'7小时前',taskId:'T07',msgs:[]},
+  ],
+  tasks:[
+    {id:'T01',name:'项目启动会',owner:'张工',assignee:'张工',start:'09-01',end:'09-05',h:16,st:'done',ctrl:false,ms:true,stage:'计划',pred:[],desc:'对齐项目目标、里程碑与资源投入，输出项目章程。'},
+    {id:'T02',name:'造型设计评审',owner:'张工',assignee:'小王',start:'09-08',end:'09-30',h:120,st:'submitted',ctrl:false,ms:false,stage:'开发',pred:['T01'],desc:'造型方案 A/B 对比评审，输出评审意见并冻结油泥模型。'},
+    {id:'T03',name:'结构冻结',owner:'张工',assignee:'小李',start:'10-08',end:'10-22',h:200,st:'late',ctrl:true,ms:true,stage:'开发',pred:['T02'],desc:'冻结白车身结构方案与接口定义，作为 BOM 发布前置条件。'},
+    {id:'T04',name:'BOM 发布',owner:'张工',assignee:'小李',start:'10-25',end:'11-10',h:96,st:'wait',ctrl:true,ms:false,stage:'开发',pred:['T03'],desc:'发布 EBOM 并与 MBOM 对齐，触发采购与工艺。'},
+    {id:'T05',name:'模流分析',owner:'李组长',assignee:'小赵',start:'10-12',end:'10-26',h:80,st:'rejected',ctrl:false,ms:false,stage:'开发',pred:['T02'],desc:'注塑件模流分析，验证填充、翘曲与冷却。'},
+    {id:'T06',name:'总装设计',owner:'李组长',assignee:'小王',start:'11-01',end:'12-15',h:280,st:'undis',ctrl:false,ms:false,stage:'开发',pred:['T04'],desc:'总装工艺方案与工装设计。'},
+    {id:'T07',name:'模具采购申请',owner:'张工',assignee:'小李',start:'10-18',end:'10-28',h:24,st:'unread',ctrl:false,ms:false,stage:'开发',pred:['T03'],desc:'依据冻结结构发起模具采购申请。'},
+    {id:'T08',name:'样车试制',owner:'张工',assignee:'小赵',start:'11-15',end:'12-30',h:320,st:'hold',ctrl:false,ms:false,stage:'验证',pred:['T06'],desc:'试制 3 台样车用于验证与公告。'},
+    {id:'T09',name:'认证测试准备',owner:'李组长',assignee:'小赵',start:'12-01',end:'12-20',h:64,st:'wait',ctrl:false,ms:false,stage:'验证',pred:['T08'],desc:'准备公告与法规认证测试样件及文档。'},
+    {id:'T10',name:'SOP 评审',owner:'张工',assignee:'张工',start:'12-22',end:'12-30',h:16,st:'wait',ctrl:false,ms:true,stage:'发布',pred:['T09'],desc:'量产启动评审（G5 门），确认产能、质量与供应链就绪。'},
+  ],
+  team:[
+    {module:'造型设计',leader:'小王',members:['小周','小吴'],ext:false},
+    {module:'结构设计',leader:'李组长',members:['小赵','小李','小陈'],ext:false},
+    {module:'CAE 仿真',leader:'小赵',members:['小孙'],ext:false},
+    {module:'工艺制造',leader:'小陈',members:['小何'],ext:false},
+    {module:'外部供应商',leader:'—',members:['博世工程（外部）','模具厂 A（外部）'],ext:true},
+  ],
+  deliv:[
+    {id:'D01',name:'造型设计评审报告',task:'T02',type:'设计文档',ver:'v1.2',st:'审批中',owner:'小王'},
+    {id:'D02',name:'结构冻结通知单',task:'T03',type:'受控文档',ver:'v0.9',st:'待提交',owner:'小李'},
+    {id:'D03',name:'BOM 清单',task:'T04',type:'BOM',ver:'v0.3',st:'未关联规则',owner:'小李'},
+    {id:'D04',name:'模流分析报告',task:'T05',type:'分析报告',ver:'—',st:'缺失',owner:'小赵'},
+    {id:'D05',name:'模具采购申请单',task:'T07',type:'流程单据',ver:'—',st:'缺失',owner:'小李'},
+    {id:'D06',name:'总装工艺方案',task:'T06',type:'工艺文档',ver:'v0.1',st:'草稿',owner:'小王'},
+    {id:'D07',name:'认证测试计划',task:'T09',type:'测试文档',ver:'v1.0',st:'已归档',owner:'小赵'},
+  ],
+  changes:[
+    {id:'CHG-2026-012',title:'结构冻结计划完成日期调整',task:'T03',from:'10/22',to:'11/05',st:'审批中',step:2,applicant:'张工',date:'2026-10-24',impact:'关键路径顺延约 2 周；影响 T04 BOM 发布、T10 SOP 评审'},
+    {id:'CHG-2026-009',title:'造型评审范围增加色彩方案',task:'T02',from:'—',to:'—',st:'已通过',step:4,applicant:'小王',date:'2026-10-12',impact:'工时 +40h，造型评审顺延 3 天'},
+    {id:'CHG-2026-006',title:'样车试制批次由 3 台调整为 2 台',task:'T08',from:'3 台',to:'2 台',st:'已驳回',step:4,applicant:'小赵',date:'2026-09-28',impact:'成本 -18 万，但验证覆盖不足，质量风险上升'},
+  ],
+  flow:[
+    {n:'概念',gate:'G1 概念评审',st:'done',date:'2026-09-05',owner:'张工',items:['可行性分析报告','技术市场分析','初步 BOM']},
+    {n:'计划',gate:'G2 计划评审',st:'done',date:'2026-09-20',owner:'张工',items:['WBS 计划','资源与预算','风险清单','项目章程']},
+    {n:'开发',gate:'G3 设计冻结',st:'doing',date:'2026-11-05',owner:'李组长',items:['结构冻结通知单','BOM v1.0','模流分析报告','DFMEA']},
+    {n:'验证',gate:'G4 验证评审',st:'todo',date:'2026-12-15',owner:'小赵',items:['样车试制报告','台架试验','法规认证']},
+    {n:'发布',gate:'G5 量产发布',st:'todo',date:'2026-12-30',owner:'张工',items:['SOP 评审决议','产能确认','供应商就绪']},
+  ],
+  kb:[
+    {id:'KB-001',t:'结构冻结评审检查清单',type:'设计规范',tags:['结构','评审'],src:'平台预研项目',cite:36,stage:'开发',sum:'涵盖 18 项冻结前检查点：接口尺寸链、材料选型、DFM 可行性、关键特性标注与公差分配。'},
+    {id:'KB-002',t:'模流分析边界条件设置经验',type:'经验案例',tags:['CAE','模流'],src:'G5 改款',cite:24,stage:'开发',sum:'总结三类典型件的浇口位置、熔体温度与保压曲线设置，附历史返工案例对比。'},
+    {id:'KB-003',t:'DFMEA 模板（2026 版）',type:'模板',tags:['质量','FMEA'],src:'企业标准',cite:58,stage:'开发',sum:'按 AIAG-VDA 更新的七步法模板，内置评分表与措施跟踪页。'},
+    {id:'KB-004',t:'BOM 发布规范 V3',type:'设计规范',tags:['BOM','发布'],src:'企业标准',cite:41,stage:'开发',sum:'EBOM/MBOM 对齐规则、版本策略、变更触发条件与归档要求。'},
+    {id:'KB-005',t:'供应商模具验收要点',type:'经验案例',tags:['采购','模具'],src:'G5 改款',cite:12,stage:'验证',sum:'模具验收 12 条硬性指标与常见扯皮点，附验收单模板。'},
+    {id:'KB-006',t:'正向设计追溯链搭建方法',type:'方法论',tags:['需求','追溯'],src:'IPD 推行组',cite:19,stage:'概念',sum:'需求—设计—仿真—验证四层追溯对象的建模方式与工具落点。'},
+  ],
+  tools:[
+    {n:'NX CAD',c:'Siemens',use:'结构 / 曲面建模',tag:'CAD',u:18,color:'#4f6ef2',ab:'NX',tags:['结构建模','曲面设计','装配']},
+    {n:'CATIA V6',c:'Dassault',use:'整车曲面与总布置',tag:'CAD',u:15,color:'#2e5fd8',ab:'CA',tags:['总布置','A级曲面','CAD']},
+    {n:'Abaqus',c:'Dassault',use:'结构强度仿真',tag:'CAE',u:26,color:'#e8a13c',ab:'AB',tags:['结构强度','非线性','CAE']},
+    {n:'Moldflow',c:'Autodesk',use:'模流分析',tag:'CAE',u:11,color:'#13b5a5',ab:'MF',tags:['模流分析','缩痕预测','CAE']},
+    {n:'OptiStruct',c:'Altair',use:'拓扑优化',tag:'CAE',u:9,color:'#7a5cf0',ab:'OS',tags:['拓扑优化','轻量化','CAE']},
+    {n:'RayZ 协同工作台',c:'天喻',use:'跨专业协同与流程',tag:'协同',u:32,color:'#1f2329',ab:'RZ',tags:['跨专业协同','流程编排','BOM']},
+    {n:'Teamcenter',c:'Siemens',use:'PLM 数据管理',tag:'PLM',u:14,color:'#2e8bf7',ab:'TC',tags:['PLM 数据','版本管理','工作流']},
+    {n:'光学仿真套件',c:'Synopsys',use:'车灯 / 光学验证',tag:'光学',u:6,color:'#13a05a',ab:'OP',tags:['车灯配光','光学验证']},
+  ],
+  risks:[
+    {lvl:'高',t:'结构冻结逾期阻塞关键路径',impact:'SOP 延期约 2 周',act:'发起 CHG-2026-012 / 增派 CAE 资源'},
+    {lvl:'中',t:'模流分析返工，交付物缺失',impact:'T05 提交被阻断',act:'补建关联文档并重提'},
+    {lvl:'中',t:'外部供应商接口未确认',impact:'模具采购存在延期风险',act:'本周五前完成接口评审'},
+    {lvl:'低',t:'样车试制暂停，验证资源闲置',impact:'验证阶段压力后移',act:'评估恢复或调整批次'},
+  ],
+  audit:[{t:timeStr(),u:'系统',a:'Agent 会话建立，身份：张工（项目经理），权限校验通过'}],
+};
+state.connectors=[
+  {id:'C1',name:'IntePLM+ V11.0',kind:'PLM · 任务 / 交付物 / 变更',st:'已连接',ic:'box',color:'#4f6ef2',scope:'读取全部项目；写入任务、变更单与交付物挂接',last:'2 分钟前同步'},
+  {id:'C2',name:'企业微信',kind:'通知 · 应用消息 / 群机器人',st:'已连接',ic:'user',color:'#2e8bf7',scope:'发送催办卡片、周报卡片与审批提醒',last:'昨天 17:00'},
+  {id:'C3',name:'PDM 文档库',kind:'文档 · 版本 / 签审',st:'需授权',ic:'doc',color:'#13b5a5',scope:'文档读取、版本比对与签审流程对接',last:'—'},
+  {id:'C4',name:'钉钉 / 飞书',kind:'通知（备用通道）',st:'未连接',ic:'bell',color:'#f2a33c',scope:'通过群机器人推送通知与审批提醒（备用）',last:'—'},
+];
+state.automations=[
+  {id:'A1',name:'每周项目周报',trigger:'每周五 17:00',next:'2026-10-30 17:00',last:'2026-10-23 17:00',on:true,out:'已汇总 4 个项目的进度、风险与变更，生成 G6 周报并推送到项目群。'},
+  {id:'A2',name:'逾期任务自动催办',trigger:'每天 09:30 · 有逾期即触发',next:'2026-10-25 09:30',last:'2026-10-24 09:30',on:true,out:'检测到 2 项逾期任务，已向执行人推送企微催办卡片。'},
+  {id:'A3',name:'交付物临期提醒',trigger:'任务到期前 3 天',next:'2026-10-27 08:00',last:'2026-10-21 08:00',on:false,out:'扫描到 1 项交付物未挂接，已提醒模块组长。'},
+];
+state.lastFiles=[];
+state.memory=[
+  {id:'M1',k:'周报统计口径',v:'按计划完成率统计，不按工时折算',tags:['周报','统计','报告'],src:'对话 10-24 · 你确认',t:'2026-10-24'},
+  {id:'M2',k:'工期估算习惯',v:'评审类任务按 3 人日估，验证类按 5 人日',tags:['工期','人日','估算'],src:'对话 10-23',t:'2026-10-23'},
+  {id:'M3',k:'改派默认人选',v:'结构件相关问题默认改给李组长',tags:['执行人','改派','负责人'],src:'对话 10-22',t:'2026-10-22'},
+];
+function recallMemory(t){
+  return state.memory.find(m=>(m.tags||[]).some(x=>t.includes(x)))||null;
+}
+const ROLES={admin:{name:'王总',title:'项目管理员',lv:4},pm:{name:'张工',title:'项目经理',lv:3},leader:{name:'李组长',title:'模块组长',lv:2},member:{name:'小赵',title:'模块组员',lv:1},guest:{name:'访客',title:'游客',lv:0}};
+const MINLV={create:2,assign:3,receive:1,submit:1,remind:2,change:3};
+const ST={done:['已完成','st-done'],submitted:['已提交','st-doing'],received:['已接收','st-doing'],late:['已接收·逾期','st-late'],rejected:['已驳回','st-late'],wait:['等待','st-wait'],undis:['未下达','st-undis'],unread:['未读','st-undis'],hold:['已暂停','st-hold']};
+
+/* ================================================================
+   工具
+================================================================ */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function timeStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+function audit(u,a){state.audit.unshift({t:timeStr(),u,a});renderAudit();}
+const me=()=>ROLES[state.role];
+function greet(){return '新建任务';}
+function refs(a){return '';} /* 知识引用标注已按要求去掉 */
+function pill(st){const s=ST[st]||['未知','st-wait'];return `<span class="pill ${s[1]}">${s[0]}</span>`;}
+function tbl(head,rows,cls){
+  return `<table class="tbl ${cls||''}"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r=>`<tr${r.cls?' class="'+r.cls+'"':''}>${(r.cells||r).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function proj(){return PROJECTS.find(p=>p.id===state.project)||PROJECTS[0];}
+let activeSess=null;
+/* 当前视图：侧边栏任务条只有在「我的任务」视图里才高亮，避免与导航项同时选中 */
+let curView='newtask';
+function appendMsg(who,html){
+  const div=document.createElement('div');
+  div.className='msg '+(who==='me'?'me':'bot');
+  div.innerHTML=(who==='me')?`<div class="bubble">${html}</div>`
+    :`<div class="avatar bot"><img src="${LOGO}" alt=""></div><div class="bubble">${html}</div>`;
+  $('#chatwrap').appendChild(div);
+  const _tc=document.querySelector('.tchat');if(_tc)_tc.classList.add('hasmsg');
+  const l=$('#chatlist');l.scrollTop=l.scrollHeight;
+  return div.querySelector('.bubble');
+}
+function addMsg(who,html){
+  if(activeSess)activeSess.msgs.push({who,html});
+  return appendMsg(who,html);
+}
+function snapshotChat(){
+  if(!activeSess)return;
+  activeSess.msgs=[...$('#chatwrap').children].map(el=>{
+    const b=el.querySelector('.bubble');
+    return {who:el.classList.contains('me')?'me':'bot',html:bubbleHTML(b)};
+  });
+}
+function renderChat(){
+  $('#chatwrap').innerHTML='';
+  noType=true;
+  const n=activeSess?activeSess.msgs.length:0;
+  const tc=document.querySelector('.tchat');if(tc)tc.classList.toggle('hasmsg',n>0);
+  if(activeSess)activeSess.msgs.forEach(m=>appendMsg(m.who,m.html));
+  const ct=$('#chatTitle');if(ct)ct.textContent=activeSess?activeSess.title:'任务助手';
+  const l=$('#chatlist');if(l)l.scrollTop=l.scrollHeight;
+  noType=false;
+  renderSideTasks();
+}
+function selectSession(id){
+  const ss=state.sessions.find(x=>x.id===id);if(!ss)return;
+  snapshotChat();                 /* 半截内容用 data-full 兜底存全，再切视图 */
+  activeSess=ss;switchView('mytasks');renderChat();
+}
+/* 侧边栏思考中：8 辐条星芒，整体旋转 */
+const SPIN=(()=>{
+  let g='';
+  for(let i=0;i<8;i++){
+    g+=`<line x1="8" y1="1.7" x2="8" y2="4.5" transform="rotate(${i*45} 8 8)" opacity="${(0.42+i*0.083).toFixed(2)}"/>`;
+  }
+  return `<svg class="spk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">${g}</svg>`;
+})();
+/* 正在思考的会话 id 集合（支持并发多条） */
+const thinkingSess=new Set();
+const userSay=t=>addMsg('me',esc(t));
+
+/* ============ 流式吐字 ============ */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* 等本轮所有追加消息吐完（含 200ms 延时类动作） */
+async function drainQ(){
+  let quiet=0,g=0;
+  while(g++<400){
+    if(tbusy||tq.length)quiet=0;else if((quiet+=40)>=560)return;
+    await sleep(40);
+  }
+}
+/* 用户切走后这一轮才答完：把最终 HTML 回填到它自己的会话历史 */
+function commitRound(owner,el){
+  if(!owner||!el)return;
+  const html=bubbleHTML(el),ms=owner.msgs;
+  for(let i=ms.length-1;i>=0;i--){if(ms[i].who==='bot'){ms[i].html=html;return;}}
+  ms.push({who:'bot',html});
+}
+function scrollChat(){const l=$('#chatlist');if(l)l.scrollTop=l.scrollHeight;}
+/* 按 HTML 安全边界逐字揭示：标签整段跳过，文本逐字吐 */
+function typeInto(el,html,targetMs){
+  el.dataset.full=html;
+  return new Promise(resolve=>{
+    const vis=html.replace(/<[^>]*>/g,'').length||1;
+    const per=Math.max(2,Math.min(16,Math.round((targetMs||900)/vis)));
+    const n=html.length;let i=0;
+    (function tick(){
+      if(abortFlag){el.innerHTML=html;delete el.dataset.full;return resolve();}
+      let guard=0;
+      while(i<n&&guard++<800){
+        if(html[i]==='<'){const j=html.indexOf('>',i);i=j<0?n:j+1;continue;}
+        if(/\s/.test(html[i])){i++;continue;}
+        break;
+      }
+      if(i>=n){el.innerHTML=html;delete el.dataset.full;scrollChat();return resolve();}
+      let k=0;const step=per<=3?3:(Math.random()<.4?2:1);
+      while(i<n&&k<step&&html[i]!=='<'){i++;k++;}
+      el.innerHTML=html.slice(0,i);
+      scrollChat();
+      setTimeout(tick,per);
+    })();
+  });
+}
+/* 纯文本逐字吐（保留末尾光标） */
+async function typeText(el,txt,targetMs){
+  const caret=el.querySelector('.cur');
+  const node=document.createTextNode('');
+  if(caret)el.insertBefore(node,caret);else el.appendChild(node);
+  const n=txt.length;if(!n)return;
+  const per=Math.max(2,Math.min(18,Math.round((targetMs||150)/n)));
+  for(let i=0;i<n;i++){
+    if(abortFlag)return;
+    node.textContent+=txt[i];
+    if(i%4===0)scrollChat();
+    if(per)await sleep(per);
+  }
+}
+/* 机器人消息进队列，逐条流式输出，保证顺序 */
+let tq=[],tbusy=false,tgen=0,noType=false;
+let liveBubble=null;   // 本轮对话的气泡：思考流与后续答案合并进同一个气泡
+function botSay(h){
+  if(noType||!activeSess)return addMsg('bot',h);
+  tq.push({h,host:liveBubble||null});   /* 切走后气泡虽脱离文档，仍继续往里吐，最后统一回填 */
+  if(!tbusy)runQ();return null;
+}
+async function runQ(){
+  tbusy=true;const g=tgen;
+  while(tq.length&&g===tgen){
+    if(abortFlag){tbusy=false;return;}
+    const it=tq.shift();
+    let b;
+    if(it.host){
+      b=document.createElement('div');
+      b.className='ans';
+      it.host.appendChild(b);
+    }else{
+      b=addMsg('bot','');
+    }
+    await typeInto(b,it.h,1100);
+    if(g!==tgen)return;
+    scrollChat();await sleep(70);
+  }
+  if(g===tgen)tbusy=false;
+}
+/* 取气泡完整 HTML：打字途中用 data-full 兜底 */
+function bubbleHTML(b){
+  if(!b)return '';
+  if(b.dataset.full!==undefined)return b.dataset.full;
+  const a=b.querySelector('.ans[data-full]');
+  if(a){
+    const cp=b.cloneNode(true);
+    cp.querySelector('.ans').outerHTML=a.dataset.full;
+    return cp.innerHTML;
+  }
+  return b.innerHTML;
+}
+function flushType(){
+  tgen++;tq.length=0;tbusy=false;
+  $$('.bubble[data-full],.ans[data-full]').forEach(b=>{b.innerHTML=b.dataset.full;delete b.dataset.full;});
+}
+function confirmCard(o){
+  const F=o.fields||{};
+  return `<div class="confirm">
+    <div class="chead"><em>待确认</em>${esc(o.title)}</div>
+    <div class="cbody"><table>${o.rows.map(r=>{
+      const f=F[r[0]];let cell;
+      if(f&&f.type==='select'){
+        cell=`<select class="cedit" data-ef="${f.name}">${(f.opts||[]).map(v=>`<option${v===f.value?' selected':''}>${esc(v)}</option>`).join('')}</select>`;
+      }else if(f){
+        cell=`<input class="cedit" data-ef="${f.name}" value="${esc(f.value||'')}">`;
+      }else{
+        cell=`<b>${r[1]}</b>`;
+      }
+      return `<tr><td>${r[0]}</td><td>${cell}</td></tr>`;
+    }).join('')}</table>
+    ${o.note?`<div class="cnote ${o.danger?'red':''}">${o.note}</div>`:''}</div>
+    <div class="cbtns">${o.actions.map((a,i)=>`<button class="btn ${i===0?'primary':'ghost'}" data-act="${a.act}" data-d="${esc(a.d||'')}">${a.label}</button>`).join('')}</div>
+  </div>`;
+}
+let inConv=false;
+function enterConv(){
+  if(inConv)return;
+  inConv=true;switchView('mytasks');
+  $('#viewTitle').textContent=(activeSess&&activeSess.title)||'我的任务';
+}
+function resetChat(){
+  chainTok++;
+  flushType();snapshotChat();
+  inConv=false;activeSess=null;liveBubble=null;$('#chatwrap').innerHTML='';
+  const tc=document.querySelector('.tchat');if(tc)tc.classList.remove('hasmsg');
+  $('#home').classList.remove('hide');
+  switchView('newtask');
+  $('#greet').textContent=greet();
+  const ct=$('#chatTitle');if(ct)ct.textContent='任务助手';
+  renderSideTasks();
+}
+
+/* ================================================================
+   图表
+================================================================ */
+function donut(data){
+  const total=data.reduce((s,d)=>s+d.val,0)||1;
+  const P=(r,a)=>{a=(a-90)*Math.PI/180;return [100+r*Math.cos(a),100+r*Math.sin(a)];};
+  let a0=0,segs='';
+  data.forEach(d=>{
+    const a1=a0+d.val/total*360,lg=(a1-a0)>180?1:0,[x0,y0]=P(78,a0),[x1,y1]=P(78,a1);
+    if(a1-a0>=359.99)segs+=`<circle cx="100" cy="100" r="78" fill="${d.color}"/>`;
+    else segs+=`<path d="M100 100 L${x0} ${y0} A78 78 0 ${lg} 1 ${x1} ${y1} Z" fill="${d.color}" stroke="#fff" stroke-width="2"/>`;
+    a0=a1;
+  });
+  const lg=data.map(d=>`<span><i style="background:${d.color}"></i>${d.label} ${Math.round(d.val/total*100)}%</span>`).join('');
+  return `<svg viewBox="0 0 200 200" style="width:132px;height:132px;flex-shrink:0;">${segs}<circle cx="100" cy="100" r="47" fill="#fff"/><text x="100" y="96" text-anchor="middle" font-size="21" font-weight="600" fill="#1f2329">${total}</text><text x="100" y="113" text-anchor="middle" font-size="10" fill="#9aa1ad">工作项</text></svg><div class="legend" style="flex-direction:column;gap:7px;">${lg}</div>`;
+}
+function progressBars(items){
+  return items.map(i=>`
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink3);"><span>${i.label}</span><b style="color:${i.v>=80?'var(--ok)':i.v>=50?'var(--warn)':'var(--danger)'};font-weight:600">${i.v}%</b></div>
+      <div style="background:#f5f6f8;border-radius:6px;height:12px;margin-top:4px;"><div style="width:${i.v}%;height:100%;border-radius:6px;background:linear-gradient(90deg,#5b8dff,#2f6bff);"></div></div>
+    </div>`).join('');
+}
+function hbars(items,max){
+  const m=max||Math.max(...items.map(i=>Math.max(i.v1,i.v2)));
+  return items.map(i=>`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--ink3);"><span style="white-space:nowrap;">${i.label}</span><span style="white-space:nowrap;flex-shrink:0;">实际 ${i.v2}h / 计划 ${i.v1}h ${i.v2>i.v1?'<b style="color:var(--danger);font-weight:500">超</b>':'<b style="color:var(--ok);font-weight:500">省</b>'}</span></div>
+      <div style="background:#f5f6f8;border-radius:6px;height:15px;margin-top:4px;position:relative;overflow:hidden;">
+        <div style="width:${i.v1/m*100}%;background:#e3eaf8;height:100%;position:absolute;"></div>
+        <div style="width:${i.v2/m*100}%;background:${i.v2>i.v1?'#f0b46a':'#5b8dff'};height:100%;position:absolute;border-radius:6px;"></div>
+      </div>
+    </div>`).join('');
+}
+
+/* ================================================================
+   权限
+================================================================ */
+function permit(action){
+  const need=MINLV[action]||9;
+  if(me().lv<need){
+    botSay(`<b>权限不足</b>：该操作需要 <b>${{create:'模块组长及以上',assign:'项目经理及以上',remind:'模块组长及以上',change:'项目经理及以上',receive:'模块组员及以上',submit:'模块组员及以上'}[action]}</b> 权限，您当前为 <b>${me().title}</b>。<br><span class="mut">Agent 权限体系完全镜像 PLM 五角色，不做权限放大。</span>`);
+    return false;
+  }
+  return true;
+}
+
+/* ================================================================
+   各页面渲染
+================================================================ */
+const TITLES={
+ projects:['项目库','4 个项目 · 组合视图'],
+ project:['项目详情','计划 / 团队 / 交付物 / 风险 / 变更'],
+ dash:['组合仪表盘','多项目进度、成本、质量、风险四维监控'],
+ newtask:['新建任务','描述一句话即可生成任务 · 补全字段并校验规则'],
+ mytasks:['我的任务','任务清单 · 任务助手对话'],
+ deliv:['交付物管理','规则 × 交付区 × 生命周期校验'],
+ changes:['变更与审批','受控变更全流程'],
+ flow:['IPD 阶段门','概念 → 计划 → 开发 → 验证 → 发布'],
+ kb:['研发知识库','设计规范 / 经验案例 / 模板 / 方法论'],
+ tools:['工具集','多学科设计环境'],
+ connectors:['连接器','外部系统授权与可用动作'],
+ automation:['定时任务','定时与事件触发的自主任务'],
+ memory:['记忆','跨会话沉淀的事实与偏好'],
+ audit:['Agent 审计日志','写操作全量留痕'],
+};
+function switchView(v){
+  if(v==='chat'||v==='tasks')v='mytasks';   /* 对话已并入「我的任务」 */
+  curView=v;
+  document.body.classList.toggle('in-newtask',v==='newtask');
+  $$('.navitem,.navgroup[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+  $$('.view').forEach(x=>x.classList.toggle('on',x.id==='view-'+v));
+  const t=TITLES[v]||['',''];
+  $('#viewTitle').textContent=t[0];
+  if(v==='mytasks'){
+    if(activeSess){
+      $('#viewTitle').textContent=activeSess.title;
+    }else{
+      $('#viewTitle').textContent='我的任务';
+    }
+  }
+  ({projects:renderProjects,dash:renderDash,tasks:renderTasks,deliv:renderDeliv,
+    changes:renderChanges,flow:renderFlow,kb:renderKB,tools:renderTools,audit:renderAudit,
+    connectors:renderConnectors,automation:renderAutomation,memory:renderMemory,
+    project:renderProject}[v]||(()=>{}))();
+  renderSideTasks();   /* 视图切换后同步任务条选中态：离开「我的任务」即取消高亮 */
+}
+
+/* ---- 项目库 ---- */
+function renderProjects(){
+  const q=($('#projSearch')?.value||'').trim();
+  const st=$('#projSeg .on')?.dataset.st||'all';
+  const list=PROJECTS.filter(p=>(st==='all'||p.st===st)&&(!q||p.name.includes(q)||p.code.includes(q)));
+  const rows=list.map(p=>({cls:'rowlink',cells:[
+    `<b>${p.name}</b><div class="mut" style="font-size:11.5px;">${p.code}</div>`,
+    `<span class="pill ${p.st==='执行中'?'st-doing':p.st==='已完成'?'st-done':'st-hold'}">${p.st}</span>`,
+    p.stage,
+    `<div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:#eef1f6;border-radius:4px;"><div style="width:${p.progress}%;height:100%;border-radius:4px;background:${p.progress>=80?'#4caf82':p.progress>=50?'#5b8dff':'#f0b46a'};"></div></div><span>${p.progress}%</span></div>`,
+    `<span class="pill ${p.health==='正常'?'st-done':p.health==='有风险'?'st-undis':'st-late'}">${p.health}</span>`,
+    esc(p.pm),`${p.start} ~ ${p.end}`,
+    `<button class="btn ghost mini" data-act="open_proj" data-d="${p.id}">详情</button>`
+  ]}));
+  $('#projTable').innerHTML=tbl(['项目','状态','当前阶段','进度','健康度','项目经理','计划周期','操作'],rows.length?rows:[['','','','','','','','']]);
+  $$('#projTable tr.rowlink').forEach((tr,i)=>{tr.onclick=e=>{if(e.target.closest('[data-act]')||!list[i])return;openProject(list[i].id);};});
+}
+function openProject(id,tab){state.project=id;state.pTab=tab||'overview';switchView('project');}
+function renderProject(){
+  const p=proj();
+  $('#pdcrumb').textContent=p.name;
+  $('#projHead').innerHTML=`
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:14px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <h2 style="font-size:20px;font-weight:600;">${p.name}</h2>
+          <span class="pill ${p.st==='执行中'?'st-doing':p.st==='已完成'?'st-done':'st-hold'}">${p.st}</span>
+          <span class="pill ${p.health==='正常'?'st-done':p.health==='有风险'?'st-undis':'st-late'}">${p.health}</span>
+        </div>
+        <div class="mut" style="margin-top:5px;font-size:12.5px;">${p.code} · 项目经理 ${p.pm} · ${p.start} ~ ${p.end} · 当前阶段 ${p.stage}</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" data-act="proj_report" data-d="${p.id}">生成周报</button>
+        <button class="btn primary" data-act="proj_flow">阶段门看板</button>
+      </div>
+    </div>`;
+  const tabs=[['overview','概览'],['plan','计划与甘特'],['team','团队'],['deliv','交付物'],['risk','风险'],['chg','变更']];
+  $('#projTabs').innerHTML=tabs.map(t=>`<div class="utab ${state.pTab===t[0]?'on':''}" data-ptab="${t[0]}">${t[1]}</div>`).join('');
+  const body={
+    overview:()=>projOverview(p), plan:()=>projPlan(), team:()=>projTeam(), deliv:()=>projDeliv(), risk:()=>projRisk(), chg:()=>projChg()
+  }[state.pTab]();
+  $('#projBody').innerHTML=body;
+  const fm=$('#flowMini');if(fm)fm.innerHTML=flowMini();
+  $$('#projTabs .utab').forEach(t=>t.onclick=()=>{state.pTab=t.dataset.ptab;renderProject();});
+}
+function projOverview(p){
+  return `<div class="grid g4">
+    <div class="card kpi"><div class="kl">整体进度</div><div class="kv">${p.progress}%</div><div class="kd">计划 6,000h / 实际 6,540h</div></div>
+    <div class="card kpi"><div class="kl">燃尽偏差率</div><div class="kv down">+4.8%</div><div class="kd">连续 3 天为正</div></div>
+    <div class="card kpi"><div class="kl">受控进度 / 里程碑</div><div class="kv">71% <span style="font-size:13px;color:var(--ink3);font-weight:400">/ 65%</span></div><div class="kd up">领先 6%</div></div>
+    <div class="card kpi"><div class="kl">未关闭风险</div><div class="kv">4</div><div class="kd">高 1 · 中 2 · 低 1</div></div>
+  </div>
+  <div class="grid g2 mt16">
+    <div class="card"><div class="h2" style="font-size:14px;">阶段门进度</div><div id="flowMini" style="margin-top:12px;"></div></div>
+    <div class="card"><div class="h2" style="font-size:14px;">任务状态分布</div><div style="display:flex;align-items:center;gap:18px;margin-top:8px;">${donut([{label:'未执行',val:5,color:'#f0b46a'},{label:'执行中',val:3,color:'#5b8dff'},{label:'已完成',val:1,color:'#4caf82'},{label:'其他',val:1,color:'#b9a3ef'}])}</div></div>
+  </div>
+  <div class="card mt16"><div class="h2" style="font-size:14px;">Agent 项目解读</div>
+    <p style="color:var(--ink2);margin-top:8px;line-height:1.85;">项目处于 <b>开发阶段（G3 设计冻结前）</b>，受控任务「结构冻结」逾期 2 天，已阻塞 BOM 发布与 SOP 评审。组合视角看，本项目是四季度交付压力最集中的项目。建议：① 对结构冻结发起工期变更（已有草稿 CHG-2026-012）；② 复用知识库「结构冻结评审检查清单」补齐 G3 准入交付物。</p>
+    <div class="chips"><span class="chip" data-q="项目现在到哪个阶段了？">问阶段门</span><span class="chip" data-act="proj_flow">打开阶段门</span></div>
+  </div>`;
+}
+function flowMini(){
+  return state.flow.map((f,i)=>{
+    const color=f.st==='done'?'#4caf82':f.st==='doing'?'#2f6bff':'#dfe3ea';
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+      <div style="width:16px;height:16px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+      <div style="flex:1;font-size:13px;"><b>${f.n}</b> <span class="mut" style="font-size:11.5px;">${f.gate} · ${f.date}</span></div>
+      <span class="pill ${f.st==='done'?'st-done':f.st==='doing'?'st-doing':'st-wait'}">${f.st==='done'?'已通过':f.st==='doing'?'进行中':'未开始'}</span>
+    </div>`;
+  }).join('');
+}
+function projPlan(){
+  return `<div class="card" style="padding:16px 18px 6px;">
+    <div class="gaxis"><span>9月</span><span>10月</span><span>11月</span><span>12月</span></div>
+    <div class="gantt">${ganRows()}</div>
+  </div>
+  <div class="card mt16 tblcard">${taskTable()}</div>`;
+}
+function projTeam(){
+  return `<div class="card tblcard">${tbl(['模块','组长','组员','类型'],[
+    ...state.team.map(t=>[`<b>${t.module}</b>`,t.leader,t.members.join('、'),t.ext?'<span class="tag">外部</span>':'内部'])
+  ])}</div>
+  <div class="card mt16"><div class="h2" style="font-size:14px;">角色与权限</div>
+    <p style="color:var(--ink2);font-size:13px;margin-top:6px;line-height:1.9;">项目管理员创建项目并指定经理 → 项目经理维护团队、编制计划、启动发布 → 模块组长细化计划、指定责任人、审核交付物 → 组员执行与提交 → 游客只读查看。</p>
+  </div>`;
+}
+function projDeliv(){
+  return `<div class="card tblcard">${tbl(['交付物','所属任务','类型','版本','状态'],[
+    ...state.deliv.map(d=>({cls:'rowlink',cells:[`<b>${d.id} ${d.name}</b>`,d.task,d.type,d.ver,delivPill(d.st)]}))
+  ])}</div>`;
+}
+function delivPill(st){
+  const m={'已归档':'st-done','审批中':'st-doing','草稿':'st-wait','待提交':'st-undis','缺失':'st-late','未关联规则':'st-late'};
+  return `<span class="pill ${m[st]||'st-wait'}">${st}</span>`;
+}
+function projRisk(){
+  return state.risks.map(r=>`<div class="card" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="pill ${r.lvl==='高'?'st-late':r.lvl==='中'?'st-undis':'st-wait'}">${r.lvl}风险</span>
+      <b style="font-size:14px;">${r.t}</b>
+    </div>
+    <div class="mut" style="margin-top:6px;font-size:12.5px;">影响：${r.impact}　·　建议：${r.act}</div>
+  </div>`).join('');
+}
+function projChg(){
+  return `<div class="card tblcard">${chgTable()}</div>`;
+}
+/* ---- 甘特 / 任务表 ---- */
+function dayNum(s){const [m,d]=s.split('-').map(Number);return (m-9)*30+d;}
+function ganRows(){
+  const total=122;
+  return state.tasks.map(t=>{
+    const l=(dayNum(t.start)-1)/total*100, w=Math.max((dayNum(t.end)-dayNum(t.start))/total*100,1.2);
+    const color=t.st==='late'?'#e04a4a':t.st==='done'?'#4caf82':t.st==='hold'?'#b9a3ef':t.st==='undis'||t.st==='unread'?'#f0b46a':'#5b8dff';
+    return `<div class="grow"><div class="glabel" data-act="task" data-d="${t.id}">${t.name}${t.ctrl?'<span class="ctrl-tag">受控</span>':''}${t.ms?'<span class="ms-tag">里程碑</span>':''}</div>
+      <div class="gtrack"><div class="gbar" style="left:${l}%;width:${w}%;background:${color};opacity:.85;" title="${t.start}~${t.end}"></div></div></div>`;
+  }).join('');
+}
+function taskTable(){
+  const f=state.tFilter;
+  const list=state.tasks.filter(t=>f==='all'?true:f==='doing'?['submitted','received','rejected','undis','unread'].includes(t.st):f==='late'?t.st==='late':['wait','undis'].includes(t.st));
+  const rows=list.map(t=>[t.id,`${t.name}${t.ctrl?'<span class="ctrl-tag">受控</span>':''}${t.ms?'<span class="ms-tag">里程碑</span>':''}`,t.owner,t.assignee,`${t.start}~${t.end}`,t.h+'h',pill(t.st),`<button class="btn ghost mini" data-act="task" data-d="${t.id}">详情</button>`]);
+  return tbl(['编号','任务','负责人','执行人','计划时间','工时','状态','操作'],rows);
+}
+function renderTasks(){
+  if(!$('#gantt')||!$('#taskTable'))return;
+  $('#gantt').innerHTML=ganRows();
+  $('#taskTable').innerHTML=taskTable();
+  $$('#taskTable tr').forEach((tr,i)=>{
+    const list=state.tasks.filter(t=>state.tFilter==='all'?true:state.tFilter==='doing'?['submitted','received','rejected','undis','unread'].includes(t.st):state.tFilter==='late'?t.st==='late':['wait','undis'].includes(t.st));
+    if(list[i])tr.onclick=e=>{if(e.target.closest('[data-act]'))return;openTask(list[i].id);};
+  });
+}
+/* ---- 组合仪表盘 ---- */
+function renderDash(){
+  $('#dashKpi').innerHTML=`
+    <div class="card kpi"><div class="kl">在执行项目</div><div class="kv">3<span style="font-size:13px;color:var(--ink3);font-weight:400"> / 4</span></div><div class="kd">1 个已归档</div></div>
+    <div class="card kpi"><div class="kl">组合平均进度</div><div class="kv">72.8%</div><div class="kd">较上期 +6.2%</div></div>
+    <div class="card kpi"><div class="kl">风险项目</div><div class="kv down">2</div><div class="kd">G6 有风险 · 平台预研延期</div></div>
+    <div class="card kpi"><div class="kl">组合工时偏差</div><div class="kv down">+12.4%</div><div class="kd">实际 13,740h / 计划 12,700h</div></div>`;
+  $('#dashProg').innerHTML=progressBars(PROJECTS.map(p=>({label:p.name,v:p.progress})));
+  const done=1,doing=3,wait=5,other=1;
+  $('#dashDonut').innerHTML=donut([{label:'未执行',val:wait,color:'#f0b46a'},{label:'执行中',val:doing,color:'#5b8dff'},{label:'已完成',val:done,color:'#4caf82'},{label:'其他',val:other,color:'#b9a3ef'}]);
+}
+/* ---- 交付物 ---- */
+function renderDeliv(){
+  $('#delivKpi').innerHTML=`
+    <div class="card kpi"><div class="kl">交付物规则</div><div class="kv">12</div><div class="kd">覆盖 8 个任务</div></div>
+    <div class="card kpi"><div class="kl">缺失 / 异常</div><div class="kv down">3</div><div class="kd">阻断 1 个任务提交</div></div>
+    <div class="card kpi"><div class="kl">交付区目录</div><div class="kv">4</div><div class="kd">mileStone 模式 · 1 个为空</div></div>`;
+  $('#delivTable').innerHTML=tbl(['编号','交付物','所属任务','类型','版本','责任人','状态'],[
+    ...state.deliv.map(d=>({cls:'rowlink',cells:[d.id,`<b>${d.name}</b>`,d.task,d.type,d.ver,d.owner,delivPill(d.st)]}))
+  ]);
+  $$('#delivTable tr.rowlink').forEach((tr,i)=>{tr.onclick=()=>{if(state.deliv[i])openDrawer('deliv',state.deliv[i].id);};});
+  $('#delivTree').innerHTML=`<div>${I.folder} 项目文件</div><div style="padding-left:18px;">${I.folder} 项目临时</div><div style="padding-left:18px;">${I.folder} 项目计划</div><div style="padding-left:18px;">${I.folder} 问题管理</div>
+  <div style="margin-top:8px;">${I.folder} 里程碑交付（mileStone）</div>
+  <div style="padding-left:18px;">${I.folder} G1 概念评审 · 3 份</div>
+  <div style="padding-left:18px;">${I.folder} G2 计划评审 · 4 份</div>
+  <div style="padding-left:18px;color:var(--danger);">${I.folder} G3 设计冻结 · 空 ${I.alert}</div>
+  <div style="padding-left:18px;">${I.folder} G4 验证评审 · 0 份</div>`;
+}
+/* ---- 变更 ---- */
+function chgTable(){
+  return tbl(['变更单号','标题','关联任务','变更内容','状态','发起人','日期'],[
+    ...state.changes.map(c=>({cls:'rowlink',cells:[`<b>${c.id}</b>`,c.title,c.task,c.from==='—'?'—':`${c.from} → ${c.to}`,
+      `<span class="pill ${c.st==='审批中'?'st-undis':c.st==='已通过'?'st-done':'st-late'}">${c.st}</span>`,c.applicant,c.date]}))
+  ]);
+}
+function renderChanges(){
+  const ing=state.changes.filter(c=>c.st==='审批中').length, ok=state.changes.filter(c=>c.st==='已通过').length, no=state.changes.filter(c=>c.st==='已驳回').length;
+  $('#chgKpi').innerHTML=`
+    <div class="card kpi"><div class="kl">审批中</div><div class="kv">${ing}</div><div class="kd">需项目经理/模块组长处理</div></div>
+    <div class="card kpi"><div class="kl">已通过</div><div class="kv">${ok}</div><div class="kd">已生成基线变更记录</div></div>
+    <div class="card kpi"><div class="kl">已驳回</div><div class="kv">${no}</div><div class="kd">需补充影响分析后重提</div></div>`;
+  $('#chgTable').innerHTML=chgTable();
+  $$('#chgTable tr').forEach((tr,i)=>{if(state.changes[i])tr.onclick=()=>openChange(state.changes[i].id);});
+}
+/* ---- 阶段门 ---- */
+function renderFlow(){
+  $('#flowKanban').innerHTML=state.flow.map((f,i)=>`
+    <div class="kcol">
+      <div class="khead"><span>${f.n}</span><span class="pill ${f.st==='done'?'st-done':f.st==='doing'?'st-doing':'st-wait'}">${f.st==='done'?'已通过':f.st==='doing'?'进行中':'未开始'}</span></div>
+      <div class="kcard" style="cursor:default;">
+        <b>${f.gate}</b>
+        <div class="mut" style="font-size:11.5px;">计划 ${f.date} · 负责人 ${f.owner}</div>
+        <div style="margin-top:6px;">${f.items.map(x=>`<div style="font-size:12px;color:var(--ink3);">· ${x}</div>`).join('')}</div>
+      </div>
+      <div class="kcard" data-act="flow_detail" data-d="${i}" style="font-size:12px;">
+        <b style="font-size:12.5px;">准入检查</b>
+        <span class="mut">${f.st==='done'?'全部通过':f.st==='doing'?`${f.items.length-1}/${f.items.length} 就绪`:'待启动'}</span>
+      </div>
+    </div>`).join('');
+  $('#flowCheck').innerHTML=`${tbl(['检查项','状态','说明'],[
+    ['阶段门准入交付物','<span class="pill st-undis">2 项未就绪</span>','结构冻结通知单未提交；模流分析报告缺失'],
+    ['受控任务状态','<span class="pill st-late">逾期</span>','T03 结构冻结逾期 2 天'],
+    ['评审决议记录','<span class="pill st-done">已留档</span>','G1、G2 决议已归档至项目知识库'],
+  ])}
+  <div class="chips"><span class="chip" data-q="本周有哪些评审门要过？">问评审安排</span><span class="chip" data-act="nav_kb">查看经验复用</span></div>`;
+}
+/* ---- 知识库 ---- */
+function renderKB(){
+  const q=($('#kbSearch')?.value||'').trim();
+  const t=state.kbType;
+  const list=state.kb.filter(k=>(t==='all'||k.type===t)&&(!q||k.t.includes(q)||k.sum.includes(q)||k.tags.join('').includes(q)));
+  $('#kbList').innerHTML=list.map(k=>`
+    <div class="card" style="cursor:pointer;" data-act="kb_detail" data-d="${k.id}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span class="tag">${k.type}</span>
+        ${k.tags.map(x=>`<span class="tag">${x}</span>`).join('')}
+        <span class="mut" style="margin-left:auto;font-size:11.5px;">引用 ${k.cite}</span>
+      </div>
+      <b style="font-size:14px;">${k.t}</b>
+      <p style="color:var(--ink3);font-size:12.5px;margin-top:6px;line-height:1.7;">${k.sum}</p>
+      <div class="mut" style="font-size:11.5px;margin-top:8px;">来源：${k.src} · 适用阶段 ${k.stage}</div>
+    </div>`).join('')||'<div class="mut">没有匹配的知识条目</div>';
+}
+/* ---- 工具集 ---- */
+function renderTools(){
+  const rel={'CAD':'总装设计 T06 / 造型评审 T02','CAE':'模流分析 T05 / 刚度 CAE-042','PLM':'BOM 发布 T04','协同':'全部跨专业任务','光学':'认证测试 T09'};
+  const cnt={'CAD':18,'CAE':26,'PLM':14,'协同':32,'光学':6};
+  $('#toolList').innerHTML=state.tools.map(t=>`
+    <div class="toolcard">
+      <div class="thead">
+        <div class="tava" style="background:${t.color||'#5b6270'}">${t.ab||t.n.slice(0,2)}</div>
+        <div class="tinfo">
+          <div class="tname">${esc(t.n)}</div>
+          <div class="tdesc">${esc(t.c)} · ${esc(t.use)}</div>
+        </div>
+      </div>
+      <div class="ttags">${(t.tags||[t.tag]).map(x=>`<span class="ttag">${esc(x)}</span>`).join('')}</div>
+      <div class="tuse">${I.sparkle.replace('class="svgic"','class="svgic" style="width:13px;height:13px"')} 本月 ${t.u!=null?t.u:(cnt[t.tag]||0)} 次使用</div>
+      <div class="trel">关联内容：${esc(rel[t.tag]||'—')}</div>
+      <div class="tbtns"><button class="btn ghost mini" data-act="noop">打开工具</button><button class="btn ghost mini" data-act="noop">查看结果</button></div>
+    </div>`).join('');
+}
+let sessSeq=2;
+function addSession(title){
+  const t=(title||'新建任务').replace(/^(创建一个|新增一个|新建一个|创建|新建)?\s*(子)?任务[：:]?\s*/,'').split(/[，,。；;]/)[0].trim()||'新建任务';
+  const ss={id:'S'+(++sessSeq),title:t.slice(0,12),ago:'刚刚',taskId:'',msgs:[]};
+  state.sessions.unshift(ss);activeSess=ss;renderSideTasks();return ss;
+}
+function renderSideTasks(){
+  const list=[...state.sessions].sort((a,b)=>(b.pin?1:0)-(a.pin?1:0));
+  $('#taskCount').textContent='('+list.length+')';
+  $('#sideTasks').innerHTML=list.map(ss=>`
+    <div class="stask${curView==='mytasks'&&activeSess&&activeSess.id===ss.id?' on':''}${thinkingSess.has(ss.id)?' thinking':''}${ss.pin?' pinned':''}" data-act="sess" data-d="${ss.id}" title="${esc(ss.title)}">
+      <span class="sn">${esc(ss.title)}</span>
+      <span class="st-time">${ss.pin?`<span class="spin" title="已置顶">${I.pin}</span>`:ss.ago}</span>${thinkingSess.has(ss.id)?SPIN:''}
+      <button class="smore" data-d="${ss.id}" title="更多" aria-label="更多操作"><svg class="svgic" viewBox="0 0 16 16" style="fill:currentColor;stroke:none"><circle cx="3.1" cy="8" r="1.25"/><circle cx="8" cy="8" r="1.25"/><circle cx="12.9" cy="8" r="1.25"/></svg></button>
+    </div>`).join('')||'<div class="stask" style="cursor:default;color:#b3b9c4;font-size:12.5px;">暂无任务会话</div>';
+}
+/* ---- 任务条悬浮菜单：置顶 / 重命名 / 分享 / 删除 ---- */
+let sessMenu=null;
+function closeSessMenu(){
+  if(sessMenu){sessMenu.remove();sessMenu=null;}
+  document.querySelectorAll('.stask.menuopen').forEach(x=>x.classList.remove('menuopen'));
+}
+function openSessMenu(btn,id){
+  const ss=state.sessions.find(x=>x.id===id);if(!ss)return;
+  closeSessMenu();
+  const row=btn.closest('.stask');if(row)row.classList.add('menuopen');
+  const el=document.createElement('div');el.className='smenu';
+  el.innerHTML=`<div class="mi" data-m="pin">${I.pin}<span>${ss.pin?'取消置顶':'置顶'}</span></div>
+    <div class="mi" data-m="rename">${I.pencil}<span>重命名</span></div>
+    <div class="mi" data-m="share">${I.share}<span>分享任务</span></div>
+    <div class="sep"></div>
+    <div class="mi danger" data-m="del">${I.trash}<span>删除任务</span></div>`;
+  document.body.appendChild(el);
+  const r=btn.getBoundingClientRect(),mw=el.offsetWidth,mh=el.offsetHeight;
+  let left=Math.max(8,Math.min(r.right-mw+4,window.innerWidth-mw-8));
+  let top=r.bottom+6;
+  if(top+mh>window.innerHeight-8)top=r.top-mh-6;
+  el.style.left=left+'px';el.style.top=Math.max(8,top)+'px';
+  sessMenu=el;
+  el.addEventListener('click',ev=>{
+    ev.stopPropagation();
+    const mi=ev.target.closest('[data-m]');if(!mi)return;
+    const m=mi.getAttribute('data-m');
+    if(m==='pin'){ss.pin=!ss.pin;renderSideTasks();toast(ss.pin?'已置顶':'已取消置顶');closeSessMenu();}
+    else if(m==='rename'){closeSessMenu();startRename(ss);}
+    else if(m==='share'){closeSessMenu();shareSess(ss);}
+    else if(m==='del'){closeSessMenu();delSess(ss);}
+  });
+}
+function startRename(ss){
+  const row=[...document.querySelectorAll('.stask')].find(x=>x.dataset.d===ss.id);
+  if(!row)return;
+  const sn=row.querySelector('.sn');if(!sn)return;
+  const inp=document.createElement('input');
+  inp.className='srename';inp.value=ss.title;inp.maxLength=24;
+  sn.textContent='';sn.appendChild(inp);
+  inp.focus();inp.select();
+  let done=false;
+  const commit=ok=>{
+    if(done)return;done=true;
+    const v=inp.value.trim();
+    if(ok&&v){ss.title=v;if(activeSess&&activeSess.id===ss.id){const ct=$('#chatTitle');if(ct)ct.textContent=v;}}
+    renderSideTasks();
+  };
+  inp.addEventListener('click',e=>e.stopPropagation());
+  inp.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Enter'){e.preventDefault();commit(true);}
+    else if(e.key==='Escape'){commit(false);}
+  });
+  inp.addEventListener('blur',()=>commit(true));
+}
+function shareSess(ss){
+  const link='https://ruimate.workbuddy.cn/task/'+encodeURIComponent(ss.id);
+  const done=()=>toast('任务链接已复制，发给同事即可协作查看');
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(link).then(done,done);else done();
+}
+function delSess(ss){
+  state.sessions=state.sessions.filter(x=>x.id!==ss.id);
+  const wasActive=activeSess&&activeSess.id===ss.id;
+  if(wasActive){activeSess=null;}
+  renderSideTasks();
+  if(wasActive)resetChat();
+  audit(me().name,`删除任务会话：${ss.title}`);
+  toast('已删除「'+ss.title+'」');
+}
+/* 捕获阶段处理，避免冒泡到任务条把会话打开 */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.smore');
+  if(b){e.preventDefault();e.stopPropagation();openSessMenu(b,b.dataset.d);return;}
+  if(!e.target.closest('.smenu'))closeSessMenu();
+},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSessMenu();});
+window.addEventListener('resize',closeSessMenu);
+function seedSessions(){
+  const s1=state.sessions.find(x=>x.id==='S1');
+  if(s1&&!s1.msgs.length){s1.msgs=[
+    {who:'me',html:esc('结构冻结要推后两周，帮我走变更')},
+    {who:'bot',html:`<b>变更影响评估 · T03 结构冻结</b>
+      ${tbl(['项目','内容'],[
+        ['变更对象','T03 结构冻结（受控 · 里程碑）'],
+        ['计划调整','10-22 → <b>11-05</b>（顺延 14 天）'],
+        ['受影响任务','T04 BOM 发布、T10 SOP 评审，自动顺延'],
+        ['影响评估','关键路径顺延约 2 周，里程碑滞后 6% → 13%'],
+      ])}
+      <div class="cnote red">T03 为受控任务，发布后不可直接改计划日期，必须走变更申请（多级父任务负责人逐级审批）。</div>
+      <div class="chips"><span class="chip" data-act="change_q">发起变更</span><span class="chip" data-act="nav_tasks">看任务清单</span></div>${refs(['手册 4.7.17 受控任务','4.7.31 项目变更'])}`}
+  ];}
+  const s2=state.sessions.find(x=>x.id==='S2');
+  if(s2&&!s2.msgs.length){s2.msgs=[
+    {who:'me',html:esc('模具采购申请还没读，帮我催一下')},
+    {who:'bot',html:`<b>催办已发送 · T07 模具采购申请</b>
+      ${tbl(['项目','内容'],[
+        ['执行人','小李'],
+        ['任务状态','未读（已超 3 天）'],
+        ['触达方式','企业微信卡片 + 任务链接'],
+        ['期望反馈','今日 18:00 前'],
+      ])}
+      <span class="mut">已写入项目日志；若 24 小时内仍未读，将自动升级提醒模块组长。</span>
+      <div class="chips"><span class="chip" data-act="nav_tasks">看任务清单</span><span class="chip" data-q="催办未读任务">再催一次</span></div>`}
+  ];}
+  activeSess=state.sessions[0]||null;
+}
+/* ---- 连接器 ---- */
+function renderConnectors(){
+  const el=$('#connList');if(!el)return;
+  el.innerHTML=state.connectors.map(c=>{
+    const on=c.st==='已连接';
+    return `<div class="conn">
+      <div class="ci" style="background:${c.color||'#5b6270'}">${I[c.ic]||I.link}</div>
+      <div class="cmain">
+        <div class="cn">${esc(c.name)}</div>
+        <div class="cdesc">${esc(c.scope)}${on&&c.last&&c.last!=='—'?' · '+esc(c.last):''}</div>
+      </div>
+      <button class="cdot${on?' on':''}" data-act="conn_toggle" data-d="${c.id}"
+        title="${on?esc(c.last)+' · 已授权，点击断开':'点击授权并连接'}">${on?'<svg class="svgic" viewBox="0 0 16 16"><path d="M4.2 8.4l2.5 2.5 5.1-5.3"/></svg>':I.plus}</button>
+    </div>`;}).join('');
+}
+/* ---- 定时任务 ---- */
+function renderAutomation(){
+  const el=$('#autoList');if(!el)return;
+  el.innerHTML=state.automations.map(a=>`
+    <div class="auto-row">
+      <div class="sw ${a.on?'on':''}" data-act="auto_toggle" data-d="${a.id}" title="启用 / 停用"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="an">${esc(a.name)}${a.on?'':' <span class="pill st-undis" style="font-weight:400;">已停用</span>'}</div>
+        <div class="ak">${esc(a.trigger)} · 下次 ${esc(a.next)}</div>
+      </div>
+      <span class="last">上次 ${esc(a.last)}</span>
+      <button class="btn ghost mini" data-act="auto_run" data-d="${a.id}" ${a.on?'':'disabled'}>立即运行</button>
+    </div>`).join('');
+}
+/* ---- 记忆 ---- */
+function renderMemory(){
+  const el=$('#memList');if(!el)return;
+  el.innerHTML=state.memory.length?state.memory.map(m=>`
+    <div class="mem-row">
+      <div style="flex:1;min-width:0;">
+        <div class="mem-k">${esc(m.k)}</div>
+        ${m.v?`<div class="mem-v">${esc(m.v)}</div>`:''}
+        ${(m.tags||[]).length?`<div class="mem-tags">${m.tags.slice(0,4).map(x=>`<span class="mem-tag">${esc(x)}</span>`).join('')}</div>`:''}
+        <div class="mem-src">${esc(m.src)} · ${esc(m.t)}</div>
+      </div>
+      <span class="mem-del" data-act="mem_del" data-d="${m.id}">删除</span>
+    </div>`).join(''):'<div style="padding:6px 0;color:#9aa1ad;font-size:12.5px;">还没有记忆。对话里说「记住：…」即可添加。</div>';
+}
+function rememberSay(txt){
+  const parts=txt.split(/[：:，,]/).map(x=>x.trim()).filter(Boolean);
+  let k,v;
+  if(parts.length>1&&parts[0].length<=12){k=parts[0];v=parts.slice(1).join('，');}
+  else{k=txt.length>14?txt.slice(0,14)+'…':txt;v=txt.length>14?txt:'';}
+  const id='M'+(state.memory.length+1);
+  state.memory.push({id,k,v,tags:[k,...v.split(/[，,、\s]/).filter(w=>w.length>=2).slice(0,3)],src:'对话 '+timeStr().slice(5,10)+' · 你确认',t:timeStr().slice(0,10)});
+  audit(me().name,`写入记忆：「${k}」`);
+  renderMemory();
+  botSay(`${I.check} 记住了：<b>${esc(k)}</b> —— ${esc(v)}<div class="chips"><span class="chip" data-act="goto_memory">查看记忆</span></div>`);
+}
+function renderAudit(){
+  $('#auditList').innerHTML=state.audit.map(a=>`<div class="audit-item"><span class="t">${a.t}</span><span><b style="font-weight:600;color:var(--ink)">${esc(a.u)}</b> ｜ ${esc(a.a)}</span></div>`).join('');
+}
+
+/* ================================================================
+   抽屉（三级详情）
+================================================================ */
+let drawerType='', drawerId='', drawerTab='';
+function openDrawer(type,id,tab){
+  drawerType=type;drawerId=id;drawerTab=tab||'info';
+  $('#overlay').classList.add('on');$('#drawer').classList.add('on');
+  renderDrawer();
+}
+function closeDrawer(){
+  $('#overlay').classList.remove('on');$('#drawer').classList.remove('on');
+}
+function renderDrawer(){
+  if(drawerType==='task')renderTaskDrawer();
+  if(drawerType==='kb')renderKBDrawer();
+  if(drawerType==='change')renderChangeDrawer();
+  if(drawerType==='flow')renderFlowDrawer();
+  if(drawerType==='deliv')renderDelivDrawer();
+}
+function tabsHtml(arr){
+  /* #dTabs 本身已是 .utabs 容器，这里只输出 tab 项，避免嵌套出两条底边线 */
+  return arr.map(t=>`<div class="utab ${drawerTab===t[0]?'on':''}" data-dtab="${t[0]}">${t[1]}</div>`).join('');
+}
+function bindDTabs(){
+  $$('#dTabs .utab').forEach(t=>t.onclick=()=>{drawerTab=t.dataset.dtab;renderDrawer();});
+}
+function renderTaskDrawer(){
+  const t=state.tasks.find(x=>x.id===drawerId);if(!t)return;
+  $('#dTitle').innerHTML=`${t.name} ${t.ctrl?'<span class="ctrl-tag">受控</span>':''}${t.ms?'<span class="ms-tag">里程碑</span>':''}`;
+  $('#dTabs').innerHTML=tabsHtml([['info','详情'],['rel','前后置'],['deliv','交付物'],['log','日志']]);
+  const preds=t.pred.length?t.pred:[];const nexts=state.tasks.filter(x=>x.pred.includes(t.id));
+  const body={
+    info:()=>`<dl class="dl">
+      <dt>编号</dt><dd>${t.id}</dd>
+      <dt>状态</dt><dd>${pill(t.st)}</dd>
+      <dt>阶段</dt><dd>${t.stage}</dd>
+      <dt>负责人</dt><dd>${t.owner}</dd>
+      <dt>执行人</dt><dd>${t.assignee}</dd>
+      <dt>计划时间</dt><dd>${t.start} ~ ${t.end}</dd>
+      <dt>计划工时</dt><dd>${t.h}h</dd>
+      <dt>受控</dt><dd>${t.ctrl?'是（修改计划须走变更）':'否'}</dd>
+    </dl>
+    <div style="margin-top:14px;"><div class="mut" style="font-size:12px;margin-bottom:4px;">任务说明</div><div style="font-size:13px;color:var(--ink2);line-height:1.8;">${t.desc}</div></div>
+    <div class="card mt16" style="padding:12px 14px;background:#fafbfc;"><b style="font-size:13px;">${I.sparkle} Agent 风险提示</b>
+      <p style="font-size:12.5px;color:var(--ink2);margin-top:6px;">${t.st==='late'?'该任务已逾期，且位于关键路径上，建议发起变更或增派资源。':t.st==='rejected'?'任务被驳回，原因：分析边界条件缺失。补齐后可直接重提。':'任务状态正常，交付物规则已就绪。'}</p>
+    </div>`,
+    rel:()=>`<div class="h3" style="font-size:13px;margin-bottom:8px;">前置任务</div>
+      ${preds.length?preds.map(p=>{const x=state.tasks.find(y=>y.id===p);return `<div class="kcard" data-act="task" data-d="${p}" style="cursor:pointer;"><b>${p} ${x?x.name:''}</b><span class="mut">${x?ST[x.st][0]:''} · ${x?x.start+'~'+x.end:''}</span></div>`;}).join(''):'<div class="mut" style="font-size:12.5px;">无前置任务</div>'}
+      <div class="h3" style="font-size:13px;margin:14px 0 8px;">后置任务</div>
+      ${nexts.length?nexts.map(x=>`<div class="kcard" data-act="task" data-d="${x.id}" style="cursor:pointer;"><b>${x.id} ${x.name}</b><span class="mut">${ST[x.st][0]} · ${x.start}~${x.end}</span></div>`).join(''):'<div class="mut" style="font-size:12.5px;">无后置任务</div>'}`,
+    deliv:()=>{const ds=state.deliv.filter(d=>d.task===t.id);
+      return ds.length?tbl(['交付物','类型','版本','状态'],ds.map(d=>[d.name,d.type,d.ver,delivPill(d.st)])):'<div class="mut" style="font-size:12.5px;">该任务暂无交付物规则</div>';},
+    log:()=>`<div class="timeline">
+      ${t.st==='late'?'<div class="tlitem"><b>系统检测到逾期</b><span>2026-10-24 09:00 · 已推送催办至执行人</span></div>':''}
+      <div class="tlitem"><b>任务状态更新：${ST[t.st][0]}</b><span>2026-10-22 17:30 · ${t.assignee}</span></div>
+      <div class="tlitem"><b>计划发布</b><span>2026-09-20 10:12 · 张工</span></div>
+      <div class="tlitem todo"><b>任务创建</b><span>2026-09-12 14:05 · 李组长</span></div>
+    </div>`
+  }[drawerTab]();
+  $('#dBody').innerHTML=body;
+  const canEdit=me().lv>=2;
+  $('#dFoot').innerHTML=`${t.st==='unread'?`<button class="btn primary" data-act="do_receive" data-d="${t.id}" ${canEdit?'':'disabled'}>接收任务</button>`:''}
+    ${t.st==='received'?`<button class="btn primary" data-act="do_submit" data-d="${t.id}" ${canEdit?'':'disabled'}>提交任务</button>`:''}
+    ${t.ctrl?`<button class="btn ghost" data-act="change_q">发起变更</button>`:''}
+    <button class="btn ghost" data-act="ask_task" data-d="${t.id}">问 Agent</button>`;
+  bindDTabs();
+}
+function renderKBDrawer(){
+  const k=state.kb.find(x=>x.id===drawerId);if(!k)return;
+  $('#dTitle').textContent=k.t;
+  $('#dTabs').innerHTML='';
+  $('#dBody').innerHTML=`<div style="display:flex;gap:6px;margin-bottom:12px;"><span class="tag">${k.type}</span>${k.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <p style="font-size:13.5px;line-height:1.9;color:var(--ink2);">${k.sum}</p>
+    <dl class="dl" style="margin-top:16px;">
+      <dt>来源</dt><dd>${k.src}</dd>
+      <dt>适用阶段</dt><dd>${k.stage}</dd>
+      <dt>引用次数</dt><dd>${k.cite} 次</dd>
+      <dt>负责人</dt><dd>IPD 推行组</dd>
+    </dl>
+    <div class="card mt16" style="padding:12px 14px;background:#fafbfc;"><b style="font-size:13px;">相关条目</b>
+      <div style="margin-top:8px;font-size:12.5px;color:var(--ink2);line-height:2;">${state.kb.filter(x=>x.id!==k.id).slice(0,3).map(x=>`· ${x.t}`).join('<br>')}</div>
+    </div>`;
+  $('#dFoot').innerHTML=`<button class="btn primary" data-act="kb_use" data-d="${k.id}">关联到当前任务</button><button class="btn ghost" data-act="noop">收藏</button>`;
+}
+function renderChangeDrawer(){
+  const c=state.changes.find(x=>x.id===drawerId);if(!c)return;
+  $('#dTitle').textContent=c.title;
+  $('#dTabs').innerHTML='';
+  const steps=['发起变更','模块组长审核','项目经理审批','基线归档'];
+  $('#dBody').innerHTML=`<dl class="dl">
+      <dt>变更单号</dt><dd>${c.id}</dd>
+      <dt>关联任务</dt><dd>${c.task}</dd>
+      <dt>变更内容</dt><dd>${c.from==='—'?'—':c.from+' → '+c.to}</dd>
+      <dt>影响分析</dt><dd style="line-height:1.8;">${c.impact}</dd>
+      <dt>发起人</dt><dd>${c.applicant}</dd>
+      <dt>状态</dt><dd><span class="pill ${c.st==='审批中'?'st-undis':c.st==='已通过'?'st-done':'st-late'}">${c.st}</span></dd>
+    </dl>
+    <div style="margin-top:18px;"><b style="font-size:13px;">审批流程</b></div>
+    <div class="timeline" style="margin-top:10px;">
+      ${steps.map((s,i)=>`<div class="tlitem ${i<c.step?'':'todo'}"><b>${s}</b><span>${i<c.step?'已完成 · '+(i===0?c.date:'2026-10-24'):'待处理'}</span></div>`).join('')}
+    </div>
+    <div class="card mt16" style="padding:12px 14px;background:#fffaf0;border-color:#f6ecd6;">
+      <b style="font-size:13px;color:#8a6a22;">${I.alert} 变更提示</b>
+      <p style="font-size:12.5px;color:#8a6a22;margin-top:6px;line-height:1.7;">受控任务变更通过后，系统将自动重算计划、生成基线变更记录，并通知受影响任务的负责人。</p>
+    </div>`;
+  $('#dFoot').innerHTML=`${c.st==='审批中'?`<button class="btn primary" data-act="chg_pass" data-d="${c.id}">通过</button><button class="btn ghost" data-act="chg_reject" data-d="${c.id}">驳回</button>`:`<button class="btn ghost" data-act="noop">查看对比图</button>`}`;
+}
+function renderDelivDrawer(){
+  const d=state.deliv.find(x=>x.id===drawerId);if(!d)return;
+  $('#dTitle').textContent=d.name;
+  $('#dTabs').innerHTML='';
+  $('#dBody').innerHTML=`<dl class="dl">
+      <dt>编号</dt><dd>${d.id}</dd>
+      <dt>类型</dt><dd>${d.type}</dd>
+      <dt>关联任务</dt><dd>${d.task}</dd>
+      <dt>当前版本</dt><dd>${d.ver}</dd>
+      <dt>责任人</dt><dd>${d.owner}</dd>
+      <dt>状态</dt><dd>${delivPill(d.st)}</dd>
+    </dl>
+    <div style="margin-top:16px;"><b style="font-size:13px;">版本历史</b></div>
+    <div class="timeline" style="margin-top:10px;">
+      <div class="tlitem"><b>${d.ver==='—'?'v0.0':d.ver} ${d.st==='缺失'?'（未创建）':'当前版本'}</b><span>2026-10-22 · ${d.owner}</span></div>
+      <div class="tlitem todo"><b>v0.9 初稿</b><span>2026-10-15 · ${d.owner}</span></div>
+      <div class="tlitem todo"><b>规则创建</b><span>2026-09-20 · 李组长</span></div>
+    </div>
+    <div style="margin-top:16px;"><b style="font-size:13px;">交付物规则</b></div>
+    ${tbl(['校验项','要求'],[['类型匹配',d.type],['生命周期状态','已发布 / 已归档'],['绑定属性','任务编号、版本、责任人'],['检查开关','提交时校验']])}`;
+  $('#dFoot').innerHTML=`<button class="btn primary" data-act="noop">打开文件</button><button class="btn ghost" data-act="noop">提交审批</button>`;
+}
+function renderFlowDrawer(){
+  const f=state.flow[+drawerId];if(!f)return;
+  $('#dTitle').textContent=`${f.gate} 准入检查`;
+  $('#dTabs').innerHTML='';
+  $('#dBody').innerHTML=`<dl class="dl">
+    <dt>阶段</dt><dd>${f.n}</dd><dt>计划日期</dt><dd>${f.date}</dd>
+    <dt>负责人</dt><dd>${f.owner}</dd>
+    <dt>状态</dt><dd>${f.st==='done'?'已通过':f.st==='doing'?'进行中':'未开始'}</dd></dl>
+    <div style="margin-top:14px;"><b style="font-size:13px;">准入交付物</b></div>
+    ${tbl(['交付物','状态'],[...f.items.map((x,i)=>[x, f.st==='done'?'<span class="pill st-done">已归档</span>': (i===f.items.length-1&&f.st==='doing'?'<span class="pill st-late">缺失</span>':'<span class="pill st-undis">待提交</span>')])])}`;
+  $('#dFoot').innerHTML=`<button class="btn primary" data-act="noop">发起评审</button><button class="btn ghost" data-act="noop">导出检查单</button>`;
+}
+
+/* ================================================================
+   Agent 能力
+================================================================ */
+const stCount=k=>state.tasks.filter(t=>t.st===k).length;
+function welcome(){
+  botSay(`您好，${me().name}，我是 <b>RuiMate 研发协同助手</b>。当前项目：<b>G6-2026 车型改款</b>（开发阶段 G3 前，进度 62%，健康度：有风险）。
+  <p>我按「计划 · 流程 · 数据 · 知识」四条主线帮你：</p>
+  <ul>
+    <li>${I.chart} 查数据：待办、进度、工时/工期偏差、组合风险</li>
+    <li>${I.gate} 管流程：IPD 阶段门、评审准入、变更审批</li>
+    <li>${I.box} 管交付：交付物规则、缺漏检查、交付区对账</li>
+    <li>${I.book} 传知识：经验案例、设计规范、模板复用</li>
+  </ul>
+  <div class="chips">
+    <span class="chip" data-q="项目现在到哪个阶段了？">阶段门状态</span>
+    <span class="chip" data-q="我今天有哪些要处理的？">今日待办</span>
+    <span class="chip" data-q="有没有类似项目的经验可以复用？">知识复用</span>
+    <span class="chip" data-act="nav_projects">打开项目库</span>
+  </div>`);
+}
+function myTodos(){
+  let rows=[];
+  if(state.role==='member'){
+    rows=state.tasks.filter(t=>t.assignee===me().name).map(t=>[t.id+' '+esc(t.name)+(t.ctrl?'<span class="ctrl-tag">受控</span>':''),pill(t.st),esc(t.owner),`${t.start}~${t.end}`]);
+  }else{
+    rows=[
+      ...state.tasks.filter(t=>t.st==='submitted').map(t=>['待审核 · '+t.id+' '+esc(t.name),pill(t.st),esc(t.assignee),`${t.start}~${t.end}`]),
+      ...state.tasks.filter(t=>t.st==='late').map(t=>[I.clock+' 逾期 2 天 · '+t.id+' '+esc(t.name)+(t.ctrl?'<span class="ctrl-tag">受控</span>':''),pill(t.st),esc(t.assignee),`${t.start}~${t.end}`]),
+      ...state.tasks.filter(t=>t.st==='unread').map(t=>['未读超 3 天 · '+t.id+' '+esc(t.name),pill(t.st),esc(t.assignee),`${t.start}~${t.end}`]),
+    ];
+  }
+  botSay(`您今天有 <b>${rows.length}</b> 项待处理${state.role==='member'?'（仅显示分配给您的任务）':''}：${tbl(['事项','状态','相关人','计划时间'],rows)}
+  ${state.role==='member'?`其中「模流分析」为<b>已驳回</b>，驳回原因：分析边界条件缺失。要我帮您补齐后重新提交吗？`:`需要我<b>批量催办</b>未读任务，或<b>代为审核</b>已提交任务吗？`}
+  <div class="chips"><span class="chip" data-act="nav_tasks">打开任务清单</span><span class="chip" data-q="催办">智能催办</span></div>`);
+}
+function health(){
+  botSay(`<b>G6-2026 项目健康诊断</b>
+  ${tbl(['指标','当前值','研判'],[
+    ['燃尽偏差率','<b style="color:var(--danger)">+4.8%</b>','连续 3 天为正，进度落后'],
+    ['工时进度','58.2%','实际 3,490h / 计划 6,000h'],
+    ['受控进度 / 里程碑','71% / 65%','受控领先 6%'],
+    ['逾期受控任务','<b style="color:var(--danger)">1 个</b>','结构冻结（逾期 2 天）'],
+  ])}
+  <b>结论：有风险。</b>风险集中在关键路径「结构冻结」逾期 → 阻塞 BOM 发布与 SOP 评审。建议回复 <b>"结构冻结推后两周"</b> 走变更，或看<b>关键路径</b>。
+  <div class="chips"><span class="chip" data-act="open_proj" data-d="G6">项目详情</span></div>${refs(['手册 4.3 项目仪表盘'])}`);
+}
+function criticalPath(){
+  botSay(`<b>关键路径分析</b>（甘特图红色链路）
+  <div class="dialog" style="background:#f8f9fb;border:1px solid #eef0f4;border-radius:10px;padding:11px 14px;margin:8px 0;font-size:13px;"><b>结构冻结（逾期2天）</b> → BOM 发布（等待） → SOP 评审（等待）</div>
+  <ul><li>「结构冻结」是唯一的受控里程碑拖累项，逾期 2 天；</li>
+  <li>前序「模流分析」被驳回待重提，返工将再占约 3 天；</li>
+  <li>叠加后 SOP 评审大概率延期约 1 周。</li></ul>
+  <b>建议：</b>① 压缩模流分析返工周期（增派 1 人）；② 或对结构冻结发起工期变更。
+  <div class="chips"><span class="chip" data-act="nav_tasks">看甘特图</span><span class="chip" data-q="结构冻结要推后两周，帮我走变更">发起变更</span></div>${refs(['手册 4.7.14 关键路径'])}`);
+}
+/* 新增：阶段 / 评审 / 追溯 / 知识 / 工具 / 组合 / 资源 */
+function stageAnswer(){
+  botSay(`<b>IPD 阶段门状态 · G6-2026</b>
+  ${tbl(['阶段','阶段门','计划日期','状态'],[
+    ...state.flow.map(f=>[f.n,f.gate,f.date,`<span class="pill ${f.st==='done'?'st-done':f.st==='doing'?'st-doing':'st-wait'}">${f.st==='done'?'已通过':f.st==='doing'?'进行中':'未开始'}</span>`])
+  ])}
+  当前处于 <b>开发阶段</b>，正在准备 <b>G3 设计冻结</b>（计划 11/05）。准入 4 项交付物中 2 项未就绪：结构冻结通知单未提交、模流分析报告缺失。
+  <div class="chips"><span class="chip" data-act="nav_flow">打开阶段门看板</span><span class="chip" data-q="本周有哪些评审门要过？">评审安排</span></div>`);
+}
+function gateAnswer(){
+  botSay(`<b>近期评审门（Review Gate）</b>
+  ${tbl(['时间','评审','类型','准备度'],[
+    ['10/28','G3 设计冻结预评审','阶段门','<span class="pill st-undis">2 项未就绪</span>'],
+    ['11/05','G3 设计冻结正式评审','阶段门','<span class="pill st-wait">待预约</span>'],
+    ['11/12','结构方案专项评审','专项','<span class="pill st-doing">材料齐备</span>'],
+  ])}
+  建议本周内补齐「结构冻结通知单」与「模流分析报告」，否则 G3 无法按期过门。可复用知识库中的<b>结构冻结评审检查清单</b>（18 项检查点）。
+  <div class="chips"><span class="chip" data-act="nav_kb">查看检查清单</span><span class="chip" data-q="帮我检查交付物缺漏">交付物检查</span></div>`);
+}
+function traceAnswer(){
+  botSay(`<b>正向设计追溯链检查</b>（需求 → 设计 → 仿真 → 验证）
+  ${tbl(['层级','对象','状态','说明'],[
+    ['需求','REQ-021 结构轻量化 8%','<span class="pill st-done">已基线</span>','来自 G6 产品需求规格'],
+    ['设计','D-118 前舱结构方案 v2','<span class="pill st-doing">评审中</span>','关联 3 个零部件'],
+    ['仿真','CAE-042 刚度分析','<span class="pill st-done">通过</span>','最大位移 0.82mm < 目标 1.0mm'],
+    ['验证','TEST-015 台架试验','<span class="pill st-wait">待执行</span>','随样车试制排期'],
+  ])}
+  <b>结论：</b>链路完整，但验证环节尚未执行，且「模流分析」未挂接需求对象，存在追溯断点 1 处。建议补挂后随 G3 一并评审。
+  <div class="chips"><span class="chip" data-act="nav_flow">查看追溯视图</span></div>${refs(['RuiMate 正向设计体系'])}`);
+}
+function knowledgeAnswer(){
+  botSay(`<b>知识复用推荐</b>（基于项目阶段与任务标签检索，共 6 条命中 3 条）
+  ${tbl(['条目','类型','来源','引用'],[
+    ['结构冻结评审检查清单','设计规范','平台预研项目','36 次'],
+    ['模流分析边界条件设置经验','经验案例','G5 改款','24 次'],
+    ['BOM 发布规范 V3','设计规范','企业标准','41 次'],
+  ])}
+  与你当前「结构冻结 / 模流分析」任务高度相关，可直接关联到任务交付物规则，避免重复踩坑。
+  <div class="chips"><span class="chip" data-act="nav_kb">打开知识库</span><span class="chip" data-act="kb_detail" data-d="KB-002">查看模流经验</span></div>${refs(['手册 4.19 项目模板库 · 经验沉淀'])}`);
+}
+function toolAnswer(){
+  botSay(`<b>工具推荐</b>（按任务类型匹配综合设计环境）
+  ${tbl(['任务','推荐工具','用途','联动'],[
+    ['模流分析 T05','Moldflow','注塑填充/翘曲/冷却','结果自动归档至交付物'],
+    ['结构刚度 CAE-042','Abaqus','强度与刚度仿真','仿真报告挂接设计对象'],
+    ['BOM 发布 T04','Teamcenter + RayZ 协同台','EBOM/MBOM 对齐与发布','触发采购流程'],
+    ['总装设计 T06','CATIA V6 + NX','总布置与工装建模','模型轻量化预览'],
+  ])}
+  所有工具结果可通过 RayZ 协同工作台回流到任务交付物，形成「设计-仿真-验证」闭环。
+  <div class="chips"><span class="chip" data-act="nav_tools">打开工具集</span></div>`);
+}
+function portfolioAnswer(){
+  botSay(`<b>组合层面风险扫描</b>（4 个项目）
+  ${tbl(['项目','进度','健康度','主要风险'],[
+    ['G6-2026 车型改款','62%','<span class="pill st-undis">有风险</span>','结构冻结逾期，关键路径顺延约 2 周'],
+    ['平台预研-滑板底盘','41%','<span class="pill st-late">延期</span>','工作量偏差 +25.6%，概念阶段滞留'],
+    ['G5 改款支持','88%','<span class="pill st-done">正常</span>','模具验收依赖外部供应商'],
+    ['电池包结构预研','100%','<span class="pill st-done">正常</span>','已归档，经验待沉淀'],
+  ])}
+  <b>建议：</b>① G6 发起工期变更并复核资源；② 平台预研收窄范围或增派 CAE；③ 把电池包项目的验证经验沉淀进知识库。
+  <div class="chips"><span class="chip" data-act="nav_dash">组合仪表盘</span><span class="chip" data-act="nav_projects">项目库</span></div>`);
+}
+function resourceAnswer(){
+  botSay(`<b>资源负荷分析</b>（按叶子任务实际工时）
+  <div style="margin-top:8px;">${hbars([{label:'小李',v1:520,v2:610},{label:'小王',v1:480,v2:470},{label:'小赵',v1:400,v2:385},{label:'张工',v1:60,v2:55}],700)}</div>
+  小李负荷 117%，主要来自「结构冻结 + BOM 发布 + 模具采购」三项并行；建议将模具采购申请转给小陈，或推迟 BOM 发布启动 3 天。${refs(['手册 4.20.7 成员工作量'])}`);
+}
+/* ---- 单任务问询（侧边栏/抽屉「问 Agent」入口） ---- */
+function fileAnswer(){
+  const f=(state.lastFiles||[])[0];
+  if(!f)return;
+  if(!f.text){
+    botSay(`${I.doc} 已收到 <b>${esc(f.name)}</b>（${fmtSize(f.size)}）。<br>PDF / Excel 需要后端解析服务，当前原型只能读到文件元信息；CSV / TXT 可以直接读内容。`);
+    return;
+  }
+  const lines=f.text.split(/\r?\n/).filter(x=>x.trim());
+  const head=lines.slice(0,5).map(x=>esc(x.slice(0,70))).join('<br>');
+  botSay(`${I.doc} <b>${esc(f.name)}</b>：共 <b>${lines.length}</b> 行，表头 <b>${esc((lines[0]||'').slice(0,40))}</b>。
+  <div style="margin-top:8px;font-size:11.5px;color:#5b6270;background:#f7f8fa;border-radius:6px;padding:8px 10px;line-height:1.85;font-family:ui-monospace,Menlo,monospace;">${head}</div>
+  <div class="chips"><span class="chip" data-q="把这份清单里的任务批量建到项目里">批量建任务</span><span class="chip" data-act="nav_tasks">对照现有清单</span></div>`);
+}
+function similarTask(id){
+  const cands=state.tasks.filter(t=>t.st!=='done').slice(0,4);
+  botSay(`${I.alert} 没有找到任务 <b>${esc(id)}</b>。编号可能记错了，我按状态与名称相似度筛出这几项，你选一个：`);
+  clarifyCard('你要看的是哪一项？',cands.map(t=>t.id+' '+t.name));
+}
+function taskAnswer(id){
+  const t=state.tasks.find(x=>x.id===id);
+  if(!t){botSay(`没找到任务 <b>${esc(id)}</b>，可以在「任务与甘特」里确认任务编号。`);return;}
+  const nexts=state.tasks.filter(x=>x.pred.includes(t.id));
+  const risk=
+    t.st==='late'?`${I.alert} 该任务已逾期（计划完成 ${t.end}），且位于关键路径，会顺延 BOM 发布与 SOP 评审。建议发起工期变更或增派资源。`:
+    t.st==='rejected'?`${I.alert} 该任务已被驳回，需按评审意见返工后重新提交；返工期间下游任务将等待。`:
+    t.st==='submitted'?`${I.check} 已提交，等待负责人审核；审核通过后自动流转至「已完成」。`:
+    t.st==='unread'?`${I.bell} 任务已下达但执行人尚未读取，超过 3 天将进入自动催办队列。`:
+    t.st==='wait'?`${I.clock} 正在等待前置任务完成，尚未进入执行。`:
+    t.st==='undis'?`${I.clock} 任务尚未下达给执行人，可在甘特图批量下达。`:
+    `${I.check} 执行状态正常，无逾期或驳回记录。`;
+  botSay(`<b>任务 ${t.id} · ${esc(t.name)}</b>${t.ctrl?'<span class="ctrl-tag">受控</span>':''}${t.ms?'<span class="ms-tag">里程碑</span>':''}
+  ${tbl(['字段','内容'],[
+    ['状态',pill(t.st)],
+    ['所属阶段',t.stage],
+    ['负责人 / 执行人',`${esc(t.owner)} / ${esc(t.assignee)}`],
+    ['计划时间',`${t.start} ~ ${t.end} ｜ 计划工时 ${t.h}h`],
+    ['受控 / 里程碑',`${t.ctrl?'受控（改计划须走变更）':'非受控'} ｜ ${t.ms?'是':'否'}`],
+    ['前置任务',t.pred.length?t.pred.map(p=>{const q=state.tasks.find(x=>x.id===p);return p+' '+esc(q?q.name:'');}).join('、'):'无'],
+    ['后置任务',nexts.length?nexts.map(x=>x.id+' '+esc(x.name)).join('、'):'无'],
+  ])}
+  ${risk}
+  <div class="chips"><span class="chip" data-act="task" data-d="${t.id}">打开任务详情</span><span class="chip" data-q="关键路径分析">看关键路径</span><span class="chip" data-act="nav_tasks">看甘特图</span></div>${refs(['手册 4.7 计划任务','4.7.17 受控任务'])}`);
+}
+/* ---- 写操作 ---- */
+function createTaskFlow(q){
+  if(!permit('create'))return;
+  const mN=q.match(/任务[：:是]?\s*([^\s，,。0-9/]+)/)||q.match(/(?:加|建|创建)\s*([^\s：:,，。]+)/);
+  const mD=q.match(/(\d{1,2})\/(\d{1,2})\s*[-—~至]+\s*(\d{1,2})\/(\d{1,2})/);
+  const MEM=['小赵','小王','李组长','张工'];
+  const mA=q.match(/执行人\s*([^\s，,。]+)/)||q.match(new RegExp('('+MEM.join('|')+')'));
+  let name=mN?mN[1].replace(/^(一个)?(子)?任务/,''):'人机工程评审';
+  name=name.replace(/^一个/,'').replace(/(子)?任务$/,'').trim()||'人机工程评审';
+  const start=mD?`${mD[1]}/${mD[2]}`:'10/28', end=mD?`${mD[3]}/${mD[4]}`:'11/05';
+  const assignee=mA?mA[1]:'小赵';
+  botSay(confirmCard({
+    title:'创建子任务',
+    rows:[['任务名称',esc(name)],['上级任务','总装设计（T06）'],['所属阶段','开发'],['计划时间',start+' 至 '+end],['执行人',esc(assignee)],['交付物规则','默认继承上级任务']],
+    fields:{
+      '任务名称':{name:'name',value:name},
+      '计划时间':{name:'time',value:start+' 至 '+end},
+      '执行人':{name:'assignee',type:'select',opts:MEM,value:assignee}
+    },
+    note:'以上字段可直接修改再确认。已校验：子任务时间落在父任务区间内、同层无重名、阶段归属正确。',
+    actions:[{label:'确认创建',act:'do_create',d:`${name}|${start}|${end}|${assignee}`},{label:'取消',act:'noop'}]
+  }));
+}
+function doCreate(d,card){
+  const [n0,s0,e0,a0]=d.split('|');
+  const g=(k,dv)=>{const el=card&&card.querySelector(`[data-ef="${k}"]`);return (el&&el.value.trim())?el.value.trim():dv;};
+  const name=g('name',n0);
+  const tv=g('time',s0+' 至 '+e0);
+  const mt=tv.match(/(\d{1,2}\/\d{1,2})\s*(?:至|—|~|-)\s*(\d{1,2}\/\d{1,2})/);
+  const start=mt?mt[1]:s0, end=mt?mt[2]:e0;
+  const assignee=g('assignee',a0);
+  const id='T'+String(state.tasks.length+1).padStart(2,'0');
+  state.tasks.push({id,name,owner:'李组长',assignee,start,end,h:40,st:'undis',ctrl:false,ms:false,stage:'开发',pred:['T06'],desc:'由 Agent 创建的子任务。'});
+  audit(me().name,`创建子任务「${name}」（${start}~${end}，执行人：${assignee}），挂接于 T06 总装设计`);
+  const ss=activeSess;
+  if(ss&&!ss.taskId){ss.taskId=id;ss.title=name.slice(0,12);}
+  else{const ns={id:'S'+(++sessSeq),title:name.slice(0,12),ago:'刚刚',taskId:id,msgs:[]};state.sessions.unshift(ns);activeSess=ns;}
+  const ct=$('#chatTitle');if(ct&&activeSess)ct.textContent=activeSess.title;
+  renderTasks();renderSideTasks();
+  botSay(`${I.check} 子任务 <b>${esc(name)}</b> 创建成功（编号 ${id}），已写入项目计划，可在「项目详情 · 计划与甘特」查看。要顺便配置交付物规则吗？
+  <div class="chips"><span class="chip" data-act="kb_deliv">配置交付物规则</span><span class="chip" data-act="nav_tasks">查看任务清单</span></div>`);
+}
+function changeAssigneeFlow(q){
+  if(!permit('assign'))return;
+  const from='小李';const mt=q.match(/(小王|小赵)/);const to=mt?mt[1]:'小王';
+  const list=state.tasks.filter(t=>t.assignee===from&&t.st!=='done');
+  botSay(confirmCard({
+    title:`批量调整执行人：${from} → ${to}`,
+    rows:[['调整后执行人',esc(to)],...list.map(t=>[t.id+' '+esc(t.name),pill(t.st)])],
+    fields:{'调整后执行人':{name:'to',type:'select',opts:['小王','小赵','李组长','张工'],value:to}},
+    note:'执行人可直接改选。将按 PLM 规则逐条「检查锁定 → 修改 → 写入项目日志」。',
+    actions:[{label:`确认修改 ${list.length} 项`,act:'do_assign',d:from+'|'+to},{label:'取消',act:'noop'}]
+  }));
+}
+function doAssign(d,card){
+  const [from,t0]=d.split('|');
+  const el=card&&card.querySelector('[data-ef="to"]');
+  const to=(el&&el.value.trim())||t0;
+  const list=state.tasks.filter(t=>t.assignee===from&&t.st!=='done');
+  list.forEach(t=>t.assignee=to);
+  audit(me().name,`批量修改执行人：${list.map(t=>t.id).join('、')} 由 ${from} → ${to}`);
+  renderTasks();renderSideTasks();
+  botSay(`${I.check} ${list.length} 项任务执行人已由 <b>${from}</b> 调整为 <b>${to}</b>，并写入项目日志。要通知 ${to} 吗？
+  <div class="chips"><span class="chip" data-act="do_notify">发送通知</span><span class="chip" data-act="noop">不用了</span></div>`);
+}
+function doNotify(){toast('已发送企业微信通知');audit(me().name,'发送企微通知卡片：任务执行人变更');botSay(`${I.check} 已发送企业微信通知卡片，对方点击卡片可直接跳转任务详情。`);}
+function receiveSubmitFlow(q){
+  if(!permit('receive'))return;
+  const isSubmit=/提交/.test(q);
+  const cand=state.role==='member'
+    ? state.tasks.filter(t=>t.assignee===me().name&&(isSubmit?t.st==='received':t.st==='unread'))
+    : state.tasks.filter(t=>t.st==='submitted');
+  if(!cand.length){botSay('当前没有符合条件的任务。');return;}
+  botSay(confirmCard({
+    title:isSubmit?'批量提交任务':'批量接收任务',
+    rows:cand.map(t=>[t.id+' '+esc(t.name),pill(t.st)]),
+    note:isSubmit?'提交前已自动校验交付物：「模流分析」缺少《模流分析报告》，该项将跳过。':'按任务状态机流转：未读 → 已接收。',
+    danger:isSubmit,
+    actions:[{label:'确认执行',act:isSubmit?'do_submit':'do_receive',d:cand.map(t=>t.id).join(',')},{label:'取消',act:'noop'}]
+  }));
+}
+function doReceive(d){
+  const ids=d.split(',');let n=0;ids.forEach(id=>{const t=state.tasks.find(x=>x.id===id);if(t){t.st='received';n++;}});
+  audit(me().name,`批量接收任务：${ids.join('、')}`);renderTasks();renderSideTasks();
+  botSay(`${I.check} 已接收 ${n} 项任务，状态流转：未读 → 已接收。`);
+}
+function doSubmit(d){
+  const ids=d.split(',');const ok=[],skip=[];
+  ids.forEach(id=>{const t=state.tasks.find(x=>x.id===id);if(!t)return;if(t.id==='T05'){skip.push(t.name);}else{t.st='done';ok.push(t.name);}});
+  audit(me().name,`批量提交任务：${ids.join('、')}（成功 ${ok.length}，跳过 ${skip.length}）`);renderTasks();renderSideTasks();
+  botSay(`${I.check} 已提交 ${ok.length} 项任务。${skip.length?`<br>${I.alert} <b>${esc(skip[0])}</b> 被跳过：交付物生命周期校验未通过——缺少关联文档《模流分析报告》。要我帮您新建关联文档吗？
+  <div class="chips"><span class="chip" data-act="do_fix_deliv">新建关联文档</span><span class="chip" data-act="noop">稍后处理</span></div>`:''}${refs(['手册 4.9.3 任务提交 · 交付物校验'])}`);
+}
+function doFixDeliv(){
+  audit(me().name,'为 T05 新建关联文档《模流分析报告》并挂接交付物规则');
+  const t=state.tasks.find(x=>x.id==='T05');if(t)t.st='done';
+  const d=state.deliv.find(x=>x.id==='D04');if(d){d.ver='v1.0';d.st='审批中';}
+  renderTasks();renderDeliv();
+  botSay(`${I.check} 已通过 PDM 页面新建文档 <b>《模流分析报告》</b>（类型自动继承规则），并挂接到 T05 交付物规则，任务已重新提交。${refs(['手册 4.7.18.6.1 新建关联文档'])}`);
+}
+function remindFlow(){
+  if(!permit('remind'))return;
+  const cand=state.tasks.filter(t=>t.st==='unread'||t.st==='late');
+  botSay(confirmCard({
+    title:'智能催办',
+    rows:cand.map(t=>[t.id+' '+esc(t.name),(t.st==='late'?'逾期 2 天 · ':'未读超 3 天 · ')+`执行人 ${esc(t.assignee)}`]),
+    note:'催办将通过企业微信卡片触达执行人，附任务链接与逾期天数。',
+    actions:[{label:'一键催办',act:'do_remind',d:cand.map(t=>t.id).join(',')},{label:'取消',act:'noop'}]
+  }));
+}
+function doRemind(d){
+  const n=d.split(',').length;audit(me().name,`智能催办：${d.split(',').join('、')}`);
+  botSay(`${I.bell} 已对 ${n} 项任务发起催办，企微卡片已送达。24h 无响应将自动升级提醒至其模块组长。`);
+}
+function changeFlow(){
+  if(!permit('change'))return;
+  botSay(confirmCard({
+    title:'受控任务变更向导',
+    rows:[
+      ['变更对象','T03 结构冻结（受控 · 里程碑）'],
+      ['原计划完成','10/22'],
+      ['变更后完成','11/05'],
+      ['受影响任务','T04 BOM 发布、T10 SOP 评审（自动顺延）'],
+      ['影响评估','关键路径顺延约 2 周，里程碑滞后 6% → 13%'],
+    ],
+    fields:{'变更后完成':{name:'to',value:'11/05'}},
+    note:'日期可直接改。T03 为受控任务，发布后不可直改，必须走变更申请（多级父任务负责人逐级审批）。',
+    danger:true,
+    actions:[{label:'生成对比图并提交',act:'do_change'},{label:'取消',act:'noop'}]
+  }));
+}
+function doChange(d,card){
+  const el=card&&card.querySelector('[data-ef="to"]');
+  const nd=(el&&el.value.trim())||'11/05';
+  const exists=state.changes.find(c=>c.id==='CHG-2026-012');
+  if(exists)exists.to=nd;
+  if(!exists){state.changes.unshift({id:'CHG-2026-012',title:'结构冻结计划完成日期调整',task:'T03',from:'10/22',to:nd,st:'审批中',step:2,applicant:me().name,date:timeStr().slice(0,10),impact:'关键路径顺延约 2 周；影响 T04 BOM 发布、T10 SOP 评审'});}
+  audit(me().name,`提交变更单 CHG-2026-012：T03 结构冻结 10/22 → ${nd}`);
+  renderChanges();
+  botSay(`${I.check} 变更单 <b>CHG-2026-012</b> 已提交，新旧计划甘特对比图已生成。
+  ${tbl(['变更单号','对象','变更内容','审批状态'],[['CHG-2026-012','T03 结构冻结','10/22 → '+nd,'<span class="pill st-undis">审批中</span>']])}
+  受影响任务 T04、T10 自动顺延；审批通过后计划自动重算并生成基线变更记录。
+  <div class="chips"><span class="chip" data-act="nav_changes">查看变更单</span></div>${refs(['手册 4.7.31 项目变更','4.17 变更单'])}`);
+}
+/* ---- 报表 ---- */
+function reportWorkload(){
+  return `<b>项目工作量偏差统计</b>（偏差率 =（实际−计划）/计划）
+  ${tbl(['项目','计划工时','实际工时','偏差值','偏差率'],[
+    ['G6-2026 车型改款','6,000','6,540','+540','<b style="color:var(--danger)">+9.0%</b>'],
+    ['G5 改款支持','2,000','1,760','-240','-12.0%'],
+    ['平台预研','3,200','4,020','+820','<b style="color:var(--danger)">+25.6%</b>'],
+  ])}
+  ${I.alert} <b>平台预研</b> 偏差率 +25.6% 超阈值，工时追加未走变更，建议核查填报。<div class="chips"><span class="chip" data-act="nav_projects">项目库</span></div>${refs(['手册 4.20.4 工作量偏差'])}`;
+}
+function reportProgress(){
+  return `<b>项目进度状态统计</b>
+  <div style="margin-top:8px;">${progressBars([{label:'G6-2026 车型改款',v:62},{label:'G5 改款支持',v:88},{label:'平台预研',v:41}])}</div><span class="mut">仅统计计划任务；G6 落后约 5%，与燃尽偏差一致。</span>${refs(['手册 4.20.3 进度状态'])}`;
+}
+function reportDuration(){
+  return `<b>项目工期偏差统计</b>
+  ${tbl(['项目','计划工期','实际工期','偏差值','偏差率'],[
+    ['G6-2026 车型改款','120 天','126 天*','+6','<b style="color:var(--danger)">+5.0%</b>'],
+    ['G5 改款支持','90 天','88 天','-2','-2.2%'],
+  ])}<span class="mut">* 实际工期 = 当前日期 − 实际开始日期（普加项目日历，扣除 10/1–10/7 例外日期）。</span>${refs(['手册 4.20.5 工期偏差'])}`;
+}
+function reportTaskStatus(){
+  const wait=5,doing=3,done=1,other=1;
+  return `<b>项目任务执行情况统计</b>（执行状态维度）
+  <div style="display:flex;align-items:center;gap:18px;margin-top:8px;">${donut([{label:'未执行',val:wait,color:'#f0b46a'},{label:'执行中',val:doing,color:'#5b8dff'},{label:'已完成',val:done,color:'#4caf82'},{label:'其他',val:other,color:'#b9a3ef'}])}</div>
+  ${tbl(['执行状态','包含任务状态','数量'],[['未执行','等待、未下达、已退回、未读',wait],['执行中','已接收、已驳回、已提交',doing],['已完成','已完成',done],['其他','已暂停、已终止',other]])}${refs(['手册 4.20.6 任务执行情况'])}`;
+}
+function reportMember(){
+  return `<b>项目成员工作量统计</b>（叶子任务实际工时）
+  <div style="margin-top:10px;">${hbars([{label:'小李',v1:520,v2:610},{label:'小王',v1:480,v2:470},{label:'小赵',v1:400,v2:385},{label:'张工',v1:60,v2:55}],700)}</div><span class="mut">非叶子节点执行人不统计；未发布任务不统计。</span>${refs(['手册 4.20.7 成员工作量'])}`;
+}
+function reportExec(){
+  return `<b>项目执行状态统计</b>（本年度全部项目）
+  <div style="display:flex;align-items:center;gap:18px;margin-top:8px;">${donut([{label:'执行中',val:3,color:'#5b8dff'},{label:'已暂停',val:1,color:'#b9a3ef'},{label:'已完成',val:1,color:'#4caf82'}])}</div>
+  ${tbl(['项目执行状态','数量','占比'],[['执行中','3','60.00%'],['已暂停','1','20.00%'],['已完成','1','20.00%']])}${refs(['手册 4.20.2 项目执行状态'])}`;
+}
+function weeklyReport(){
+  botSay(`<b>G6-2026 项目周报</b>（自动生成 · ${timeStr().slice(0,10)}）
+  ${tbl(['模块','本周动态'],[
+    ['阶段','开发阶段（G3 设计冻结前），G1/G2 已通过'],
+    ['完成','造型设计评审（待审核）、项目启动会'],
+    ['风险','结构冻结（受控）逾期 2 天；模流分析被驳回；模具采购未读超 3 天'],
+    ['变更',state.changes.length?state.changes.map(c=>c.id+' '+c.st).join('；'):'本周无变更单'],
+    ['交付物','4/7 已归档，2 项缺失，1 项未关联规则'],
+    ['下周','推进 G3 准入交付物、启动总装设计、样车试制恢复评估'],
+  ])}
+  <div class="chips"><span class="chip" data-act="do_share">转发到项目群</span><span class="chip" data-act="nav_deliv">交付物看板</span></div>`);
+}
+function doShare(){audit(me().name,'项目周报转发至企微群「G6 项目组」');toast('已转发到项目群');botSay(`${I.share} 已转发至企微群「G6 项目组」，群成员点击卡片可查看完整报表。`);}
+function deliverableCheck(){
+  botSay(`<b>交付物缺漏检查</b>（任务规则 × 交付区对账）
+  ${tbl(['检查项','结果'],[
+    ['有规则但无交付物','<b style="color:var(--danger)">2 项</b>：T05 模流分析、T07 模具采购'],
+    ['交付物未关联规则','<b style="color:var(--warn)">1 项</b>：《BOM 清单 v0.3》未挂 T04'],
+    ['交付区对账','mileStone 模式 4 个目录，G3 设计冻结目录为空'],
+    ['阻断影响','T05 提交被拦截，G3 准入缺 2 项'],
+  ])}
+  要批量修复（建关联文档 / 挂接规则 / 补传文件）吗？<div class="chips"><span class="chip" data-act="do_fix_deliv">一键修复模流报告</span><span class="chip" data-act="nav_deliv">打开交付物管理</span></div>${refs(['手册 4.7.18 交付物规则','4.14 交付区'])}`);
+}
+/* ---- 知识 ---- */
+const KBS=[
+  {k:/受控.*(改|修|日期)|受控任务.*(还能|可以|修改)/,a:()=>`<b>不能直接修改。</b>受控任务发布后计划日期被锁定，只能走<b>项目变更</b>：计划调整 → 列出受影响任务 → 生成新旧计划对比 → 提交变更单 → 多级父任务负责人逐级审批。<br>另：非受控任务下不能挂受控任务，受控任务下可以挂非受控任务。<br>${refs(['手册 4.7.17 受控任务','4.7.31 项目变更'])}<div class="chips"><span class="chip" data-act="change_q">发起变更演示</span></div>`},
+  {k:/锁定|锁了|被锁/,a:()=>`任务<b>锁定</b>后仅锁定者可编辑，避免并发修改：<ul><li>锁定/解锁在甘特图任务行操作栏；</li><li>支持"全部批量锁定/撤销锁定"；</li><li>项目模板库中的任务无锁定操作。</li></ul>若任务被他人锁定，我会拒绝修改并提示锁定人。<br>${refs(['手册 4.7.5 锁定计划任务','4.7.27/28 批量锁定'])}`},
+  {k:/交付区|文件夹.*(生成|规则)/,a:()=>`交付区按<b>全路径</b>或<b>里程碑</b>两种规则自动建目录：<ul><li><b>mileStone</b>：仅里程碑任务建文件夹（当前项目使用）；</li><li><b>filePath</b>：按任务树全路径逐级建。</li></ul>${refs(['手册 4.14 交付区'])}`},
+  {k:/完成项目|什么条件.*(完成|结束)/,a:()=>`「完成项目」要求全部计划任务处于：<b>已完成 / 逾期完成 / 已终止</b>；存在执行中、等待、暂停任务时无法完成。${refs(['手册 4.11.4 完成项目'])}`},
+  {k:/模板.*(导入|团队|资源)|关联导入/,a:()=>`导入计划模板：<ul><li><b>不勾选</b>"同时导入团队和资源"：只导任务，执行人若不在新团队则为空；</li><li><b>勾选</b>：执行人一并导入，并导入模块/组长/组员（项目管理员不导入）。</li></ul>MPP 导入<b>覆盖</b>历史任务、一条失败全部不导；Excel 导入<b>追加</b>不覆盖。${refs(['手册 4.7.15 导入规则','4.19 项目模板库'])}`},
+  {k:/阶段门|IPD|评审门|G3|G4|G5/,a:()=>`项目按 <b>概念(G1) → 计划(G2) → 开发(G3) → 验证(G4) → 发布(G5)</b> 五道阶段门推进，每道门需通过准入交付物检查与评审决议才能进入下一阶段。当前 G6 处于开发阶段，正在准备 G3 设计冻结。<div class="chips"><span class="chip" data-act="nav_flow">打开阶段门看板</span></div>${refs(['RuiMate IPD / 系统工程'])}`},
+];
+function kbAnswer(q){
+  const hit=KBS.find(e=>e.k.test(q));
+  if(hit){botSay(`<b>知识库检索</b>（来源：《项目管理用户手册 V1.4》+ 企业知识库）<br><br>`+hit.a());return true;}
+  return false;
+}
+function helpMsg(){
+  botSay(`<b>能力速查</b>（当前身份：${me().title}）
+  ${tbl(['域','能力','示例'],[
+    ['计划','待办 / 进度 / 偏差 / 资源','"今日待办" "谁超负荷了"'],
+    ['流程','IPD 阶段门 / 评审门 / 变更','"项目到哪个阶段了" "本周有哪些评审"'],
+    ['协同','任务分解 / 执行人调整 / 交付物','"把小李的任务改给小王"'],
+    ['数据','六大报表 / 组合风险','"组合层面哪些项目有风险"'],
+    ['知识','经验复用 / 规范 / 模板','"有没有类似项目的经验"'],
+    ['工具','仿真 / CAD / 协同工具推荐','"做模流分析用哪个工具"'],
+    ['助手','计划 / 撤销 / 记忆 / 自动运行 / 附件','"记住：…" "打开定时任务" "拖入 CSV"'],
+  ])}<span class="mut">当前为演示引擎与示例数据；接入 PLM OpenAPI 与 LLM 后即为生产版。</span>`);
+}
+
+/* ================================================================
+   路由
+================================================================ */
+/* ---------- 思考流（WorkBuddy 风格） ---------- */
+function intentOf(t){
+  const p=proj(),who=me();
+  if(/(创建|新增|建|加).*(任务|子任务)/.test(t))return{d:'新建子任务并下发执行人',src:'WBS 节点 / 阶段门约束 / 可下达人员',rule:`${who.title} 建任务权限 Lv${who.lv} ≥ 2`};
+  if(/(改|换|调整).*(执行人|负责人)|改给|换成/.test(t))return{d:'调整任务执行人',src:'任务明细 / 成员负荷 / 当前指派',rule:'改派权限 Lv≥3 与受控任务锁'};
+  if(/催办|提醒/.test(t))return{d:'生成催办通知',src:'逾期与未读任务列表',rule:'仅可催办本模块下游任务'};
+  if(/接收.*任务|提交.*任务|批量/.test(t))return{d:'批量接收 / 提交任务',src:'本人待接收队列 / 任务状态',rule:'任务状态机流转合法性'};
+  if(/变更|推迟|推后|改期/.test(t))return{d:'发起工期变更申请',src:'前后置任务 / 里程碑 / 模具排期',rule:'受控任务不可直改，须走 G4 变更'};
+  if(/交付物/.test(t))return{d:'交付物齐套性检查',src:'任务交付物清单 / 交付物规则库',rule:'G3 门交付物必填项'};
+  if(/周报|日报|汇报|报告/.test(t))return{d:'汇总本周进展生成周报',src:'任务流转 / 风险 / 变更记录',rule:'统计口径按计划完成率'};
+  if(/(知识|经验|规范|模板)/.test(t))return{d:'检索知识库经验复用',src:'结项沉淀 / 模板库 / 规范文档',rule:'相似度排序取前 3 条'};
+  if(/(工具|仿真|软件|CAD|CAE)/i.test(t))return{d:'匹配工具链推荐',src:'工具集目录 / 授权清单',rule:'按阶段与专业匹配'};
+  if(/(阶段|IPD|到哪|评审|门径|gate)/i.test(t))return{d:'查询 IPD 阶段门状态',src:'阶段计划 / 评审记录 / 门禁项',rule:'只读查询，不改数据'};
+  if(/(组合|风险|健康|概览|进度|完成率|偏差|负荷|最忙|延期)/.test(t))return{d:'汇总项目与组合指标',src:p.name+' 及组合内项目数据',rule:'计算口径与组合仪表盘一致'};
+  if(/(待办|今天)/.test(t))return{d:'汇总我的待办',src:'本人任务 / 待审批 / 催办',rule:'按紧急度排序'};
+  return{d:'理解问题并匹配能力',src:'PLM 数据与知识库',rule:'权限镜像校验'};
+}
+function thinkSteps(t){
+  const it=intentOf(t);
+  const tid=(t.match(/任务\s*(T\d{1,2})/i)||[])[1];
+  const tk=tid?state.tasks.find(x=>x.id===tid.toUpperCase()):null;
+  const arr=[
+    {label:'已读取',link:tk?('任务 '+tk.id+' · '+tk.name):('对话上下文 · '+proj().name)},
+    {plain:'深度思考'},
+    {ic:'term',label:'解析意图：'+it.d},
+    {ic:'search',label:'检索 PLM：'+it.src},
+    {ic:'check',label:'校验规则：'+it.rule},
+  ];
+  const mem=recallMemory(t);
+  if(mem)arr.splice(1,0,{ic:'doc',label:'已读取记忆：'+mem.k});
+  return arr;
+}
+async function thinkFlow(t){
+  const sid=activeSess?activeSess.id:'';
+  if(sid){thinkingSess.add(sid);renderSideTasks();}
+  try{return await thinkFlowSteps(t);}
+  finally{if(sid){thinkingSess.delete(sid);renderSideTasks();}}
+}
+async function thinkFlowSteps(t){
+  const b=addMsg('bot','');
+  liveBubble=b;
+  b.innerHTML='<div class="think"></div>';
+  const box=b.querySelector('.think');
+  const meta=document.createElement('div');
+  meta.className='tmeta';
+  meta.innerHTML='<span class="mt">正在思考</span><i>│</i><span class="mc">已消耗 ◇ 0.00</span>';
+  box.appendChild(meta);
+  let cost=0,waitRow=null;
+  const steps=thinkSteps(t);
+  steps.push({wait:'正在整理结论…'});
+  for(const st of steps){
+    if(abortFlag)break;
+    const row=document.createElement('div');
+    row.className='tk'+(st.plain?' plain':'')+(st.wait?' wait':'');
+    if(st.ic&&!st.plain&&!st.wait)row.innerHTML=`<i class="tki">${I[st.ic]||I.sparkle}</i>`;
+    const tx=document.createElement('span');
+    tx.className='tx';
+    tx.innerHTML='<span class="cur"></span>';
+    row.appendChild(tx);
+    if(st.wait)waitRow=row;
+    box.insertBefore(row,meta);
+    scrollChat();
+    await typeText(tx,st.label||st.plain||st.wait||'',st.wait?260:150);
+    if(st.link){
+      const lk=document.createElement('b');
+      lk.className='lk';lk.textContent=st.link;
+      tx.insertBefore(lk,tx.querySelector('.cur'));
+    }
+    const c=tx.querySelector('.cur');if(c)c.remove();
+    cost+=0.04+Math.random()*0.11;
+    meta.querySelector('.mc').textContent='已消耗 ◇ '+cost.toFixed(2);
+    scrollChat();
+    await sleep(st.wait?420:90);
+  }
+  if(waitRow){
+    waitRow.style.transition='opacity .18s';
+    waitRow.style.opacity='0';
+    await sleep(170);
+    waitRow.remove();
+  }
+  meta.querySelector('.mt').textContent='思考完成';
+  await sleep(90);
+  return b;
+}
+/* ============ 执行计划清单 ============ */
+function planSteps(t){
+  if(/(创建|新增|建|加).*(任务|子任务)/.test(t))return[
+    '解析任务要素：名称 / 工期 / 执行人 / 上级任务',
+    '校验 WBS 层级与 IPD 阶段门约束',
+    '检查同层重名与时间区间冲突',
+    '生成任务草稿，等待你确认后写入',
+  ];
+  if(/变更|推迟|推后|改期/.test(t))return[
+    '定位 T03 及其前后置任务',
+    '计算关键路径与里程碑影响',
+    '校验受控锁与审批链完整性',
+    '生成新旧计划对比，提交变更单',
+  ];
+  if(/周报|日报|汇报|报告/.test(t))return[
+    '汇总本周任务流转与完成率',
+    '提取风险项与变更记录',
+    '按项目模板组织章节',
+    '生成报告并输出交付物',
+  ];
+  if(/催办|提醒/.test(t))return[
+    '扫描逾期与未读任务',
+    '定位执行人与所属模块组长',
+    '生成催办文案并推送企微卡片',
+  ];
+  if(/交付物|缺漏/.test(t))return[
+    '读取交付物规则与必填项',
+    '比对已挂接文档与版本状态',
+    '输出缺漏清单与补齐建议',
+  ];
+  if(/接收.*任务|提交.*任务|批量/.test(t))return[
+    '拉取待接收 / 待提交队列',
+    '校验交付物齐套性',
+    '批量流转任务状态',
+  ];
+  return null;
+}
+let planEl=null;
+function planHTML(steps){
+  return `<div class="plan" data-plan><div class="ph">${I.term}<b>执行计划</b><span class="pn">${steps.length} 步</span></div>`
+    + steps.map((x,i)=>`<div class="ps" data-i="${i}"><i class="dot"></i><span class="pt">${esc(x)}</span><span class="skipb" data-skip="${i}">跳过</span></div>`).join('')
+    + '</div>';
+}
+async function planFlow(t){
+  const steps=planSteps(t);
+  if(!steps||!liveBubble||!liveBubble.isConnected)return null;
+  const wrap=document.createElement('div');
+  wrap.innerHTML=planHTML(steps);
+  liveBubble.appendChild(wrap.firstElementChild);
+  planEl=liveBubble.querySelector('[data-plan]');
+  const rows=[...planEl.querySelectorAll('.ps')];
+  for(let i=0;i<rows.length-1;i++){
+    if(abortFlag)break;
+    if(rows[i].classList.contains('skip'))continue;
+    rows[i].classList.add('doing');scrollChat();
+    await sleep(210+Math.random()*170);
+    rows[i].classList.remove('doing');rows[i].classList.add('done');
+    scrollChat();await sleep(55);
+  }
+  if(!abortFlag&&rows.length)rows[rows.length-1].classList.add('doing');
+  return planEl;
+}
+function planFinish(){
+  if(!planEl||!planEl.isConnected){planEl=null;return;}
+  planEl.querySelectorAll('.ps').forEach(r=>{
+    r.classList.remove('doing');
+    if(!r.classList.contains('skip'))r.classList.add('done');
+  });
+  planEl=null;
+}
+function planAbort(){
+  if(planEl&&planEl.isConnected){
+    planEl.querySelectorAll('.ps').forEach(r=>{
+      if(!r.classList.contains('done')){r.classList.remove('doing');r.classList.add('skip');}
+    });
+  }
+  planEl=null;
+}
+document.addEventListener('click',e=>{
+  const sp=e.target.closest('[data-skip]');
+  if(!sp)return;
+  const row=sp.closest('.ps');
+  row.classList.add('skip');row.classList.remove('doing','done');
+  toast('已跳过该步');
+});
+/* ============ 中断 ============ */
+let abortFlag=false;
+function setBusy(on){const b=$('#stopBar');if(b)b.classList.toggle('on',!!on);}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#stopBtn'))return;
+  abortFlag=true;chainTok++;
+  /* 保留已经吐出的半截内容，不回填完整 HTML */
+  $$('.bubble[data-full],.ans[data-full]').forEach(b=>{delete b.dataset.full;});
+  flushType();planAbort();setBusy(false);
+  const tip=`${I.alert} 已停止生成，上面保留的是中断时的内容。要接着做、还是换个说法再来？`;
+  if(liveBubble&&liveBubble.isConnected){
+    const d=document.createElement('div');d.className='ans';d.innerHTML=tip;
+    liveBubble.appendChild(d);scrollChat();
+  }else addMsg('bot',tip);
+});
+/* ============ 附件 ============ */
+let pendingFiles=[];
+function fmtSize(n){return n>1048576?(n/1048576).toFixed(1)+'MB':(n/1024).toFixed(0)+'KB';}
+function renderAttach(){
+  const html=pendingFiles.map((f,i)=>{
+    const meta=f.rows?`${f.rows} 行`:(f.text?'已读取':'待解析');
+    return `<span class="fchip"><b>${esc(f.name)}</b><i>${fmtSize(f.size)} · ${meta}</i><span class="fx" data-fx="${i}">×</span></span>`;
+  }).join('');
+  ['#attachList','#attachList2'].forEach(id=>{const el=$(id);if(el)el.innerHTML=html;});
+}
+function addFiles(list){
+  [...list].forEach(f=>{
+    const ext=(f.name.split('.').pop()||'').toLowerCase();
+    const rec={name:f.name,size:f.size,ext,rows:0,text:''};
+    pendingFiles.push(rec);
+    if(['csv','txt','md','json','log'].includes(ext)&&f.size<800000){
+      const rd=new FileReader();
+      rd.onload=()=>{rec.text=String(rd.result||'');rec.rows=rec.text.split(/\r?\n/).filter(x=>x.trim()).length;renderAttach();};
+      rd.readAsText(f);
+    }
+    renderAttach();
+  });
+  if(pendingFiles.length)toast('已添加 '+pendingFiles.length+' 个附件');
+}
+function clearFiles(){pendingFiles=[];renderAttach();}
+function attachNote(){
+  if(!pendingFiles.length)return '';
+  const parts=pendingFiles.map(f=>`${f.name}（${f.rows?f.rows+' 行':'需后端解析'}）`);
+  return `<div class="fnote">已读取 ${pendingFiles.length} 个附件：${esc(parts.join('、'))}</div>`;
+}
+document.addEventListener('click',e=>{
+  const x=e.target.closest('[data-fx]');
+  if(x){pendingFiles.splice(+x.dataset.fx,1);renderAttach();return;}
+  if(e.target.closest('[title="附件"]')){$('#fileInput').click();}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='fileInput'&&e.target.files.length){addFiles(e.target.files);e.target.value='';}
+});
+['#home','.chatinput'].forEach(sel=>{
+  const el=document.querySelector(sel);if(!el)return;
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('dragover');});
+  el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))el.classList.remove('dragover');});
+  el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dragover');if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files);});
+});
+/* ============ 澄清卡 ============ */
+function clarifyCard(q,opts){
+  botSay(`<div class="clarify"><div class="cq">${I.sparkle}<span>${esc(q)}</span></div>
+    <div class="copt">${opts.map((o,i)=>`<button class="cobtn" data-clar="${i}">${esc(o)}</button>`).join('')}</div></div>`);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-clar]');
+  if(!b)return;
+  const box=b.closest('.copt');
+  if(box)box.querySelectorAll('.cobtn').forEach(x=>x.disabled=true);
+  route(b.textContent.trim());
+});
+/* ============ 撤销 ============ */
+let undoSnap=null,undoTimer=null,undoLeft=0;
+function snapState(){
+  return JSON.parse(JSON.stringify({
+    tasks:state.tasks,changes:state.changes,deliv:state.deliv,audit:state.audit
+  }));
+}
+function pushUndo(label,snapData){
+  undoSnap=snapData;undoLeft=5;
+  const bar=$('#undoBar'),tx=$('#undoTxt'),cd=$('#undoCd');
+  if(!bar)return;
+  tx.textContent=label;cd.textContent='5s';bar.classList.add('on');
+  scrollChat();
+  clearInterval(undoTimer);
+  undoTimer=setInterval(()=>{
+    undoLeft--;cd.textContent=undoLeft+'s';
+    if(undoLeft<=0){clearInterval(undoTimer);bar.classList.remove('on');undoSnap=null;}
+  },1000);
+}
+function clearUndo(){
+  clearInterval(undoTimer);
+  const bar=$('#undoBar');if(bar)bar.classList.remove('on');
+  undoSnap=null;
+}
+function undoLast(){
+  if(!undoSnap){toast('已超过撤销时限');return;}
+  const snap=undoSnap;
+  state.tasks=snap.tasks;state.changes=snap.changes;state.deliv=snap.deliv;state.audit=snap.audit;
+  clearUndo();
+  renderTasks();renderDeliv();renderChanges();renderAudit();renderSideTasks();
+  audit(me().name,'撤销上一笔写操作');
+  botSay(`${I.alert} 已撤销上一笔写操作，PLM 数据已回滚到操作前状态。`);
+  toast('已撤销');
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#undoBtn'))undoLast();
+});
+/* ============ 执行 trace ============ */
+function traceBlock(rows){
+  return `<div class="trace"><span class="tgl">${I.term} 执行详情 · ${rows.length} 次工具调用</span>
+    <div class="tbody">${rows.map(r=>`<div class="trow"><code>${esc(r[0])}</code><span>${esc(r[1])}</span><em>${esc(r[2])}</em></div>`).join('')}</div>
+  </div>`;
+}
+function liveAppend(html,delay){
+  setTimeout(()=>{
+    if(!liveBubble||!liveBubble.isConnected)return;
+    const d=document.createElement('div');d.className='ans';d.innerHTML=html;
+    liveBubble.appendChild(d);scrollChat();
+  },delay||700);
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.tgl');
+  if(t){t.closest('.trace').classList.toggle('open');scrollChat();}
+});
+const TRACES={
+  do_create:d=>[['query_task_tree','parent=T06','✓ 4 个子任务'],['check_constraint','wbs_level / ipd_gate','✓ 通过'],['write_task',d.split('|')[0],'✓ 已写入']],
+  do_assign:d=>[['list_tasks','assignee='+d.split('|')[0],'✓ 命中'],['check_lock','目标任务','✓ 未锁定'],['update_assignee','→ '+d.split('|')[1],'✓ 完成']],
+  do_change:()=>[['get_task','T03','✓ 受控·里程碑'],['calc_impact','前后置 + 里程碑','✓ 顺延 2 周'],['create_change','CHG-2026-012','✓ 进入审批']],
+  do_remind:d=>[['scan_overdue','未读 / 逾期','✓ '+d.split(',').length+' 项'],['send_wecom','执行人','✓ 已送达']],
+  do_receive:d=>[['list_queue','status=unread','✓ '+d.split(',').length+' 项'],['transit_state','→ 已接收','✓ 完成']],
+  do_submit:d=>[['list_queue','status=received','✓ '+d.split(',').length+' 项'],['check_deliv','交付物规则','! 1 项缺文档'],['transit_state','→ 已提交','✓ 部分完成']],
+  do_fix_deliv:()=>[['create_doc','模流分析报告','✓ v1.0'],['bind_rule','T05','✓ 已挂接']],
+  do_notify:()=>[['send_wecom','企微卡片','✓ 已送达']],
+};
+let routeChain=Promise.resolve(),chainTok=0;
+function route(q){
+  const t=(q||'').trim();if(!t)return;
+  const onNew=$('#view-newtask').classList.contains('on');
+  if(onNew||!activeSess){snapshotChat();addSession(t);renderChat();}
+  liveBubble=null;
+  const fnote=attachNote();
+  enterConv();addMsg('me',fnote+esc(t));
+  if(pendingFiles.length){state.lastFiles=pendingFiles.slice();clearFiles();}
+  scrollChat();
+  abortFlag=false;
+  const owner=activeSess,tok=++chainTok;
+  setBusy(true);
+  routeChain=routeChain.then(async()=>{
+    if(tok!==chainTok)return;
+    try{
+      await thinkFlow(t);if(tok!==chainTok||abortFlag)return;
+      await planFlow(t);if(tok!==chainTok||abortFlag)return;
+      dispatch(t);
+      await drainQ();
+      if(tok!==chainTok||abortFlag)return;
+      planFinish();
+      if(owner&&owner!==activeSess&&liveBubble)commitRound(owner,liveBubble);
+    }
+    catch(e){botSay(I.alert+' 演示引擎异常：'+esc(e.message));}
+    finally{if(tok===chainTok)setBusy(false);}
+  });
+}
+function dispatch(t){
+  const mm=t.match(/记住[：:，,\s]+(.+)$/);
+  if(mm)return rememberSay(mm[1]);
+  if(/^(你)?(记得|记忆|记住)(什么|了哪些|哪些)/.test(t)||/^(打开)?记忆$/.test(t))return switchView('memory');
+  if(/连接器|接了哪些系统|能连(哪些|什么)/.test(t))return switchView('connectors');
+  if(/定时任务|自动化|定时(执行|跑)/.test(t))return switchView('automation');
+  if((state.lastFiles||[]).length&&/清单|表格|附件|文件|这份|上传|几行|多少(个|条)/.test(t))return fileAnswer();
+  if(/^(你好|hi|hello|在吗|嗨)/i.test(t))return welcome();
+  if(/帮助|能做(什么|啥)|怎么用|功能|速查/.test(t))return helpMsg();
+  const tid=(t.match(/任务\s*(T\d{1,2})/i)||[])[1];
+  if(tid){
+    const up=tid.toUpperCase();
+    if(state.tasks.some(x=>x.id===up))return taskAnswer(up);
+    return similarTask(up);
+  }
+  if(/(阶段|IPD|到哪)/i.test(t))return stageAnswer();
+  if(/评审|门径|gate/i.test(t))return gateAnswer();
+  if(/追溯|正向设计|需求.*(验证|设计)/.test(t))return traceAnswer();
+  if(/(知识|经验|规范|复用|模板库)/.test(t))return knowledgeAnswer();
+  if(/(工具|仿真|软件|CAD|CAE)/i.test(t))return toolAnswer();
+  if(/(组合|多项目|多个项目|项目库)/.test(t))return portfolioAnswer();
+  if(/(负荷|资源冲突|超负荷|忙不过)/.test(t))return resourceAnswer();
+  if(/(待办|今天.*(做|处理|安排))/.test(t)&&!/创建/.test(t))return myTodos();
+  if(/健康|状况|怎么样|概览|风险|诊断/.test(t))return health();
+  if(/关键路径|为什么.*延期|延期.*原因/.test(t))return criticalPath();
+  if(/(创建|新增|建|加).*(任务|子任务)/.test(t))return createTaskFlow(t);
+  if(/(改|换|调整).*(执行人|负责人)|执行人.*(改|换)|改给|换成/.test(t))return changeAssigneeFlow(t);
+  if(/接收.*任务|提交.*任务|批量.*(接收|提交)/.test(t))return receiveSubmitFlow(t);
+  if(/催办|提醒.*(任务|执行人)/.test(t))return remindFlow();
+  if(/工作量偏差|工时偏差/.test(t))return botSay(reportWorkload());
+  if(/工期偏差/.test(t))return botSay(reportDuration());
+  if(/进度.*(状态|统计)|完成率/.test(t))return botSay(reportProgress());
+  if(/任务执行情况|任务状态分布/.test(t))return botSay(reportTaskStatus());
+  if(/成员工作量|谁.*(最忙|忙)/.test(t))return reportMember();
+  if(/执行状态统计|项目状态统计/.test(t))return botSay(reportExec());
+  if(/周报|日报|汇报|报告/.test(t))return weeklyReport();
+  if(/交付物|缺漏/.test(t))return deliverableCheck();
+  if(/变更|推迟|推后|改期/.test(t))return changeFlow();
+  if(kbAnswer(t))return;
+  botSay(`${I.alert} 这句我没把握，不想猜错让你返工。可以这样问：`);
+  clarifyCard('你想做的是哪一类？',['查看我的待办','项目现在到哪个阶段了？','帮我检查交付物缺漏','生成本周项目周报']);
+}
+const UNDO_LABEL={
+  do_create:'已创建子任务',do_assign:'已批量调整执行人',do_change:'已提交变更单',
+  do_receive:'已批量接收任务',do_submit:'已批量提交任务',do_remind:'已发送催办',
+  do_fix_deliv:'已新建关联文档'
+};
+/* ---- 动作注册 ---- */
+const ACTS={
+  do_create:(d,c)=>doCreate(d,c), do_assign:(d,c)=>doAssign(d,c), do_receive:d=>doReceive(d), do_submit:d=>doSubmit(d),
+  do_fix_deliv:()=>doFixDeliv(), do_remind:d=>doRemind(d), do_change:(d,c)=>doChange(d,c),
+  do_notify:()=>doNotify(), do_share:()=>doShare(),
+  noop:()=>botSay('已取消，未对 PLM 数据做任何修改。'),
+  help_q:()=>helpMsg(), change_q:()=>changeFlow(), kb_deliv:()=>kbAnswer('交付物规则'),
+  nav_tasks:()=>openProject('G6','plan'), nav_dash:()=>switchView('dash'), nav_projects:()=>switchView('projects'),
+  nav_report:()=>switchView('projects'), nav_flow:()=>switchView('flow'), nav_kb:()=>switchView('kb'),
+  nav_tools:()=>switchView('tools'), nav_deliv:()=>switchView('deliv'), nav_changes:()=>switchView('changes'),
+  open_proj:d=>openProject(d),
+  task:d=>openTask(d), kb_detail:d=>openKB(d), flow_detail:d=>openDrawer('flow',d),
+  sess:d=>selectSession(d),
+  proj_flow:()=>switchView('flow'),
+  proj_report:()=>{switchView('chat');enterConv();setTimeout(()=>weeklyReport(),200);},
+  ask_task:d=>{closeDrawer();switchView('chat');enterConv();const t=state.tasks.find(x=>x.id===d);userSay('任务'+d+' '+(t?t.name:'')+'现在什么情况？');thinkFlow('任务'+d+' '+((t&&t.name)||'')).then(()=>taskAnswer(d));},
+  kb_use:()=>{audit(me().name,'将知识条目关联至当前任务交付物规则');toast('已关联到任务');botSay(`${I.check} 已将该知识条目关联到当前任务，后续提交时会作为交付物检查依据。`);},
+  deliv_scan:()=>{switchView('chat');enterConv();setTimeout(()=>deliverableCheck(),200);},
+  chg_pass:d=>{const c=state.changes.find(x=>x.id===d);if(c){c.st='已通过';c.step=4;}audit(me().name,`审批通过变更单 ${d}`);renderChanges();renderChangeDrawer();toast('已通过审批');},
+  goto_memory:()=>switchView('memory'),
+  goto_automation:()=>switchView('automation'),
+  conn_toggle:d=>{const c=state.connectors.find(x=>x.id===d);if(!c)return;
+    if(c.st==='已连接'){c.st='未连接';c.last='—';}
+    else{c.st='已连接';c.last='刚刚授权';}
+    renderConnectors();audit(me().name,`连接器「${c.name}」${c.st==='已连接'?'授权成功':'已断开'}`);
+    toast(c.st==='已连接'?'已授权':'已断开');},
+  auto_toggle:d=>{const a=state.automations.find(x=>x.id===d);if(!a)return;a.on=!a.on;renderAutomation();
+    audit(me().name,`定时任务「${a.name}」${a.on?'启用':'停用'}`);toast(a.on?'已启用':'已停用');},
+  auto_run:d=>{const a=state.automations.find(x=>x.id===d);if(!a)return;
+    a.last='刚刚';renderAutomation();
+    audit('系统',`定时任务「${a.name}」手动触发执行`);
+    const tc=document.querySelector('.tchat');if(tc)tc.classList.add('hasmsg');
+    switchView('mytasks');botSay(`<b>定时任务「${esc(a.name)}」已执行</b><br>${esc(a.out)}<br><span class="mut">触发方式：${esc(a.trigger)}</span>`);},
+  auto_add:()=>{const el=$('#autoInput');const v=(el&&el.value.trim())||'';if(!v){toast('先描述触发条件');return;}
+    const id='A'+(state.automations.length+1);
+    const trig=/每天/.test(v)?'每天 09:30':/每周/.test(v)?'每周五 17:00':'按事件触发';
+    state.automations.push({id,name:v.slice(0,16),trigger:trig,next:'待排期',last:'—',on:true,out:'将按描述执行：'+v});
+    if(el)el.value='';renderAutomation();audit(me().name,`新建定时任务「${v.slice(0,16)}」`);toast('已创建定时任务');},
+  mem_add:()=>{const k=($('#memK')?.value||'').trim(),v=($('#memV')?.value||'').trim();
+    if(!k||!v){toast('主题和内容都要填');return;}
+    state.memory.push({id:'M'+(state.memory.length+1),k,v,tags:[k],src:'手动添加 · '+me().name,t:timeStr().slice(0,10)});
+    $('#memK').value='';$('#memV').value='';renderMemory();audit(me().name,`写入记忆：「${k}」`);toast('已保存');},
+  mem_del:d=>{const m=state.memory.find(x=>x.id===d);if(!m)return;
+    state.memory=state.memory.filter(x=>x.id!==d);
+    renderMemory();audit(me().name,`删除记忆：「${m.k}」`);toast('已删除');},
+  chg_reject:d=>{const c=state.changes.find(x=>x.id===d);if(c){c.st='已驳回';c.step=2;}audit(me().name,`驳回变更单 ${d}`);renderChanges();renderChangeDrawer();toast('已驳回');},
+};
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-act]');
+  if(c){
+    const act=c.getAttribute('data-act'),d=c.getAttribute('data-d');
+    const card=c.closest('.confirm');
+    const need=ACT_TOOL[act];
+    if(need&&!toolOn(need)){toast('「'+toolLabel(need)+'」已停用，该操作被拦截；点输入框「工具集」可重新开启');return;}
+    if(card)card.querySelectorAll('button').forEach(b=>{b.disabled=true;b.classList.remove('primary');});
+    const isWrite=/^do_(create|assign|change|receive|submit|remind|fix_deliv)$/.test(act);
+    const snap=isWrite?snapState():null;
+    if(ACTS[act])ACTS[act](d||'',card);
+    if(isWrite){
+      pushUndo(UNDO_LABEL[act]||'已完成一笔写操作',snap);
+      if(TRACES[act])liveAppend(traceBlock(TRACES[act](d||'')),1500);
+    }
+  }
+  const q=e.target.closest('[data-q]');
+  if(q)route(q.getAttribute('data-q'));
+  const chip=e.target.closest('.chip');
+  if(chip&&!chip.hasAttribute('data-act')&&!chip.hasAttribute('data-q'))route(chip.textContent.trim());
+});
+function openTask(id){openDrawer('task',id,'info');}
+function openKB(id){openDrawer('kb',id);}
+function openChange(id){openDrawer('change',id);}
+
+/* ================================================================
+   事件绑定
+================================================================ */
+document.querySelector('.nav').addEventListener('click',e=>{
+  const a=e.target.closest('.navitem,.navgroup[data-v]');if(!a)return;
+  if(a.id==='newTask'){resetChat();setTimeout(()=>{const i=document.querySelector('#home .cin');i&&i.focus();},80);}
+  switchView(a.dataset.v);
+});
+$('#taskGroup').addEventListener('click',()=>{
+  const box=$('#sideTasks');
+  const hid=box.classList.toggle('tt-hide');
+  $('#taskGroup').classList.toggle('collapsed',hid);
+});
+$('#toggleSide').addEventListener('click',()=>$('#side').classList.toggle('mini'));
+const pc=$('#projChip');if(pc)pc.addEventListener('click',()=>openProject('G6'));
+/* 侧边栏不再提供 + 入口，统一从「新建任务」进入 */
+$('#dClose').addEventListener('click',closeDrawer);
+$('#overlay').addEventListener('click',closeDrawer);
+$('#roleSel').addEventListener('change',e=>{
+  state.role=e.target.value;const r=me();const wh=$('#whoami');if(wh)wh.textContent=r.name;renderSideTasks();
+  audit('系统',`切换身份 → ${r.name}（${r.title}，权限 Lv.${r.lv}）`);
+  enterConv();
+  botSay(`${I.user} 已切换为 <b>${r.name}（${r.title}）</b>。${r.lv>=3?'您拥有完整读写权限。':r.lv>=2?'可创建任务、接收/提交、催办。':r.lv>=1?'仅能处理分配给自己的任务。':I.alert+' 游客为只读，写操作将被拒绝。'}试试对我说"今日待办"。`);
+});
+/* 项目库筛选 */
+document.addEventListener('input',e=>{
+  if(e.target.id==='projSearch')renderProjects();
+  if(e.target.id==='kbSearch')renderKB();
+  if(e.target.classList.contains('cin')){
+    const box=e.target.closest('.composer');box.querySelector('.send').classList.toggle('on',!!e.target.value.trim());
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.classList.contains('cin')&&e.key==='Enter'){
+    const v=e.target.value;e.target.value='';
+    e.target.closest('.composer').querySelector('.send').classList.remove('on');
+    route(v);
+  }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();resetChat();setTimeout(()=>{const i=document.querySelector('#home .cin');i&&i.focus();},80);}
+});
+document.addEventListener('click',e=>{
+  const s=e.target.closest('.send');if(!s)return;
+  const box=s.closest('.composer'),input=box.querySelector('.cin');
+  if(!input.value.trim())return;
+  const v=input.value;input.value='';s.classList.remove('on');route(v);
+});
+/* 分段筛选 */
+document.addEventListener('click',e=>{
+  const seg=e.target.closest('.seg span');
+  if(seg){
+    const parent=seg.parentElement;
+    parent.querySelectorAll('span').forEach(s=>s.classList.remove('on'));
+    seg.classList.add('on');
+    if(parent.id==='projSeg')renderProjects();
+    if(parent.id==='taskSeg'){state.tFilter=seg.dataset.st;renderTasks();}
+    if(parent.id==='kbSeg'){state.kbType=seg.dataset.t;renderKB();}
+  }
+});
+/* 启动 */
+$('#brandLogo').src=LOGO;
+$('#dClose').innerHTML=I.close;
+$('#greet').textContent=greet();
+/* ---- 工具集选择器：勾选决定本次允许 Agent 使用哪些工具 ---- */
+state.toolSet={plm:true,notify:true};
+const TOOLCATS=[
+  ['plm','PLM 写入','建单 · 改派 · 变更 · 提交'],
+  ['notify','通知与催办','发送催办提醒'],
+  ['query','查询与分析','只读 · 常开'],
+];
+const ACT_TOOL={do_create:'plm',do_assign:'plm',do_change:'plm',do_receive:'plm',do_submit:'plm',do_fix_deliv:'plm',do_remind:'notify'};
+function toolOn(k){return k==='query'||!!state.toolSet[k];}
+function toolLabel(k){const c=TOOLCATS.find(x=>x[0]===k);return c?c[1]:k;}
+function toolSummary(){const en=TOOLCATS.filter(c=>toolOn(c[0])).map(c=>c[1]);return en.length===TOOLCATS.length?'工具全开':en.join(' · ');}
+function toolPopHTML(){
+  return `<div class="tph">选择本次允许 Agent 使用的工具</div>`+TOOLCATS.map(c=>{
+    const dis=c[0]==='query',on=toolOn(c[0]);
+    return `<label class="tpit${dis?' dis':''}"><input type="checkbox" data-toolk="${c[0]}" ${on?'checked':''} ${dis?'disabled':''}><span>${c[1]}</span><span class="td">${c[2]}</span></label>`;
+  }).join('');
+}
+function renderToolPops(){$$('.toolpop').forEach(p=>p.innerHTML=toolPopHTML());}
+function closeToolPops(){$$('.toolpop.on').forEach(x=>x.classList.remove('on'));$$('.tool.on').forEach(x=>x.classList.remove('on'));}
+function bindToolBtns(){
+  $$('.composer').forEach(cm=>{
+    if(!cm.querySelector('.tool'))return;               /* 对话输入框已去掉工具集，不挂面板 */
+    if(cm.querySelector('.toolpop'))return;
+    const p=document.createElement('div');p.className='toolpop';cm.appendChild(p);
+  });
+  $$('.tool').forEach(b=>{
+    if(b.dataset.tbind)return;b.dataset.tbind='1';
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pop=b.closest('.composer').querySelector('.toolpop');
+      const was=pop.classList.contains('on');
+      closeToolPops();
+      if(!was){renderToolPops();pop.classList.add('on');b.classList.add('on');}
+    });
+  });
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('.tool')||e.target.closest('.toolpop'))return;
+  closeToolPops();
+});
+document.addEventListener('change',e=>{
+  const k=e.target.getAttribute&&e.target.getAttribute('data-toolk');
+  if(!k||k==='query')return;
+  state.toolSet[k]=e.target.checked;
+  toast(e.target.checked?'已启用「'+toolLabel(k)+'」':'已停用「'+toolLabel(k)+'」，相关操作将被拦截');
+});
+bindToolBtns();
+renderAudit();
+renderSideTasks();
+renderTasks();
+seedSessions();renderChat();
+switchView('newtask');
+</script>
+</body>
+</html>

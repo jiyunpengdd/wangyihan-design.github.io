@@ -3,6 +3,7 @@ import { getImage, Image } from 'astro:assets';
 import { render } from 'astro:content';
 import { mdxComponents } from '@/components/mdx';
 import MotionCover from '@/components/motion/MotionCover.astro';
+import DemoTabs from '@/components/work/DemoTabs.astro';
 import Icon from '@/components/ui/Icon.astro';
 import NextProject from '@/components/work/NextProject.astro';
 import WarpText from '@/components/ui/WarpText.astro';
@@ -41,6 +42,7 @@ const {
   coverMotion,
   tint,
   url,
+  demo,
 } = project.data;
 const { Content } = await render(project);
 const share = cover
@@ -113,24 +115,35 @@ const meta = [
     </header>
 
     <div class="shell mt-12 sm:mt-16">
-      <div class="scroll-expand tint-panel overflow-hidden rounded-card p-[4%] sm:p-[6%]">
-        {coverMotion ? (
-          <MotionCover variant="hero" class="shot overflow-hidden" />
-        ) : (
-          cover && (
-            <Image
-              src={cover}
-              alt={coverAlt}
-              widths={[800, 1200, 1600, 2400, 3200]}
-              sizes="(min-width: 80rem) 68rem, 90vw"
-              quality={90}
-              loading="eager"
-              fetchpriority="high"
-              class="shot w-full"
-            />
-          )
-        )}
-      </div>
+      {demo ? (
+        <DemoTabs
+          src={demo.src}
+          spec={demo.spec}
+          demoLabel={demo.demoLabel}
+          specLabel={demo.specLabel}
+          note={demo.note}
+          label={client}
+        />
+      ) : (
+        <div class="scroll-expand tint-panel overflow-hidden rounded-card p-[4%] sm:p-[6%]">
+          {coverMotion ? (
+            <MotionCover variant="hero" class="shot overflow-hidden" />
+          ) : (
+            cover && (
+              <Image
+                src={cover}
+                alt={coverAlt}
+                widths={[800, 1200, 1600, 2400, 3200]}
+                sizes="(min-width: 80rem) 68rem, 90vw"
+                quality={90}
+                loading="eager"
+                fetchpriority="high"
+                class="shot w-full"
+              />
+            )
+          )}
+        </div>
+      )}
     </div>
 
     <div class="shell mt-16 sm:mt-24">
