@@ -34,6 +34,21 @@ export const siteConfig = {
   /** A PDF in `public/`, offered on the resume page. Leave empty to hide the button. */
   resumePdf: '',
 
+  /**
+   * ICP 备案号，按《互联网信息服务管理办法》要求公示在页面底部，并链接到工信部备案系统。
+   * 留空则不显示。公安联网备案通过后，可另起一行用 `publicSecurity`。
+   */
+  icp: {
+    number: '沪ICP备2026057358号',
+    href: 'https://beian.miit.gov.cn/',
+  },
+
+  /** 公安联网备案号，例如「沪公网安备 31010402001234号」。留空则不显示。 */
+  publicSecurity: {
+    number: '',
+    href: 'https://beian.mps.gov.cn/',
+  },
+
   /** The banner and preferences dialog. Set `enabled: false` to remove both. */
   cookieConsent: {
     enabled: true,
